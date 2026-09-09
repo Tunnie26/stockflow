@@ -26,5 +26,57 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ../../apps/backend
+      dockerfile: Dockerfile
+
+    container_name: stockflow-backend
+
+    restart: unless-stopped
+
+    environment:
+      APP_ENV: development
+
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES}
+
+      MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI}
+
+    ports:
+      - "${API_PORT}:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../../apps/frontend
+      dockerfile: Dockerfile
+
+    container_name: stockflow-frontend
+
+    restart: unless-stopped
+
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8000
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+
 volumes:
   stockflow_postgres_data:
