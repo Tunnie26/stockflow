@@ -1,0 +1,24 @@
+[project]
+name = "stockflow-backend"
+version = "0.1.0"
+description = "Backend API for StockFlow Inventory Management Platform"
+readme = "README.md"
+authors = [
+    { name = "Tunnie26", email = "callmetuan2693@gmail.com" }
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "alembic>=1.19.2",
+    "fastapi[standard]>=0.141.1",
+    "psycopg[binary]>=3.3.5",
+    "pydantic-settings>=2.15.0",
+    "python-dotenv>=1.2.3",
+    "sqlalchemy>=2.0.52",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "app"
