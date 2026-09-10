@@ -2,22 +2,8 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
-from app.models import (
-    Customer,
-    Location,
-    Material,
-    MaterialCategory,
-    MaterialCustomer,
-    MaterialSupplier,
-    ReceivingUnit,
-    StockBalance,
-    StockMovement,
-    Supplier,
-    Transaction,
-    TransactionDetail,
-    Warehouse,
-)
 
+import app.models  # noqa: F401
 from app.config import settings
 from app.db.base import Base
 
