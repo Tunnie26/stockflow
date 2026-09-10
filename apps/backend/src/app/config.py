@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     postgres_password: str
 
     # Authentication
-    jwt_secret: str
+    jwt_secret: str | None = None
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
 
@@ -34,11 +34,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-
-DATABASE_URL = (
-    f"postgresql+psycopg://"
-    f"{settings.postgres_user}:{settings.postgres_password}"
-    f"@{settings.postgres_host}:{settings.postgres_port}"
-    f"/{settings.postgres_db}"
-)
