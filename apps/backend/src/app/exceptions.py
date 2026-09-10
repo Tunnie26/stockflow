@@ -1,7 +1,7 @@
 class AppError(Exception):
     """Base exception for application-level errors"""
 
-    def __init__(sefl, message: str, code: str = "APPLICATION_ERROR"):
-        sefl.message = message
-        sefl.code = code
+    def __init__(self, message: str, code: str = "APPLICATION_ERROR"):
+        self.message = message
+        self.code = code
         super().__init__(message)
