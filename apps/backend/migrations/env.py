@@ -2,8 +2,23 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from app.models import (
+    Customer,
+    Location,
+    Material,
+    MaterialCategory,
+    MaterialCustomer,
+    MaterialSupplier,
+    ReceivingUnit,
+    StockBalance,
+    StockMovement,
+    Supplier,
+    Transaction,
+    TransactionDetail,
+    Warehouse,
+)
 
-from app.config import DATABASE_URL
+from app.config import settings
 from app.db.base import Base
 
 config = context.config
@@ -11,7 +26,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", DATABASE_URL.replace("%", "%%"))
+config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
