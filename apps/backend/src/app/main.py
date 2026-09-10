@@ -2,7 +2,11 @@ from fastapi import FastAPI
 
 from app.api.v1.router import router as v1_router
 
-app = FastAPI(title="StockFlow API", version="0.1.0")
+app = FastAPI(
+    title="StockFlow API",
+    version="0.1.0",
+    description="Inventory Management Platform API",
+)
 
 
 @app.get("/health")
