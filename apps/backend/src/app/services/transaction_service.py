@@ -9,11 +9,13 @@ from app.models.transaction import Transaction, TransactionType
 from app.models.transaction_detail import TransactionDetail
 from app.models.warehouse import Warehouse
 from app.schemas.transaction import TransactionCreate
+from app.services.inventory_service import InventoryService
 
 
 class TransactionService:
     def __init__(self, db: Session):
         self.db = db
+        self.inventory_service = InventoryService(db)
 
     def create(self, payload: TransactionCreate) -> Transaction:
         self._validate_business_rules(payload)
@@ -32,6 +34,8 @@ class TransactionService:
 
         self.db.add(transaction)
         self.db.flush()
+
+        transaction_details = []
 
         for detail in payload.details:
             material = self._get_material(
@@ -59,8 +63,19 @@ class TransactionService:
             )
 
             self.db.add(transaction_detail)
+            transaction_details.append(transaction_detail)
 
         self.db.flush()
+
+        for transaction_detail in transaction_details:
+            if payload.transaction_type == TransactionType.INBOUND:
+                self.inventory_service.apply_inbound(transaction_detail)
+
+            elif payload.transaction_type == TransactionType.OUTBOUND:
+                self.inventory_service.apply_outbound(transaction_detail)
+
+            elif payload.transaction_type == TransactionType.TRANSFER:
+                self.inventory_service.apply_transfer(transaction_detail)
 
         return transaction
 

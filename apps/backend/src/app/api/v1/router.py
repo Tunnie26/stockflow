@@ -9,6 +9,7 @@ from app.api.v1.material_categories import router as material_categories_router
 from app.api.v1.materials import router as materials_router
 from app.api.v1.receiving_units import router as receiving_units_router
 from app.api.v1.suppliers import router as suppliers_router
+from app.api.v1.transactions import router as transactions_router
 from app.api.v1.warehouses import router as warehouses_router
 
 router = APIRouter()
@@ -38,4 +39,8 @@ router.include_router(customers_router, prefix="/customers", tags=["Customers"])
 
 router.include_router(
     receiving_units_router, prefix="/receiving-units", tags=["Receiving Units"]
+)
+
+router.include_router(
+    transactions_router, prefix="/transactions", tags=["Transactions"]
 )

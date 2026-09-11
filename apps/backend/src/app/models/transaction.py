@@ -1,10 +1,14 @@
 from datetime import date, datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.transaction_detail import TransactionDetail
 
 
 class TransactionType(StrEnum):
@@ -77,4 +81,9 @@ class Transaction(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+    details: Mapped[list["TransactionDetail"]] = relationship(
+        back_populates="transaction",
+        cascade="all, delete-orphan",
     )

@@ -108,6 +108,7 @@ def test_create_inbound_success():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -150,6 +151,7 @@ def test_create_outbound_success():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -184,6 +186,7 @@ def test_create_outbound_with_other_recipient_success():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -214,6 +217,7 @@ def test_create_transfer_success():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.TRANSFER,
@@ -242,6 +246,7 @@ def test_create_inbound_without_supplier():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(TransactionType.INBOUND)
 
@@ -262,6 +267,7 @@ def test_create_inbound_with_invalid_destination_warehouse():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -285,6 +291,7 @@ def test_create_inbound_with_receiving_unit():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -304,6 +311,7 @@ def test_create_outbound_without_recipient():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(TransactionType.OUTBOUND)
 
@@ -321,6 +329,7 @@ def test_create_outbound_with_supplier():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -340,6 +349,7 @@ def test_create_outbound_with_destination_warehouse():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -359,6 +369,7 @@ def test_create_transfer_without_destination():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(TransactionType.TRANSFER)
 
@@ -376,6 +387,7 @@ def test_create_transfer_to_same_warehouse():
     db.scalar.return_value = make_warehouse(1)
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.TRANSFER,
@@ -398,6 +410,7 @@ def test_create_transfer_with_supplier():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.TRANSFER,
@@ -420,6 +433,7 @@ def test_create_transfer_with_receiving_unit():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.TRANSFER,
@@ -442,6 +456,7 @@ def test_create_transfer_with_other_recipient():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.TRANSFER,
@@ -460,6 +475,7 @@ def test_warehouse_not_found():
     db.scalar.return_value = None
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(TransactionType.INBOUND)
 
@@ -478,6 +494,7 @@ def test_warehouse_inactive():
     )
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(TransactionType.INBOUND)
 
@@ -497,6 +514,7 @@ def test_supplier_not_found():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -520,6 +538,7 @@ def test_supplier_inactive():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -542,6 +561,7 @@ def test_receiving_unit_not_found():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -565,6 +585,7 @@ def test_receiving_unit_inactive():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.OUTBOUND,
@@ -589,6 +610,7 @@ def test_material_not_found():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -613,6 +635,7 @@ def test_material_inactive():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -636,6 +659,7 @@ def test_material_wrong_warehouse():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -662,6 +686,7 @@ def test_material_snapshot_and_total_amount():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -708,6 +733,7 @@ def test_total_amount_is_none_without_unit_price():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -742,6 +768,7 @@ def test_transaction_number_starts_from_one():
     ]
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.INBOUND,
@@ -759,6 +786,7 @@ def test_adjustment_rejected_by_generic_transaction_service():
     db.scalar.return_value = make_warehouse()
 
     service = TransactionService(db)
+    service.inventory_service = MagicMock()
 
     payload = make_payload(
         TransactionType.ADJUSTMENT,
