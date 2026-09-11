@@ -16,6 +16,7 @@ class TransactionDetailCreate(BaseModel):
 class TransactionCreate(BaseModel):
     transaction_type: TransactionType
     warehouse_id: int
+    destination_warehouse_id: int | None = None
 
     supplier_id: int | None = None
     receiving_unit_id: int | None = None
@@ -51,6 +52,7 @@ class TransactionResponse(BaseModel):
     transaction_no: int
     transaction_type: TransactionType
     warehouse_id: int
+    destination_warehouse_id: int | None
 
     supplier_id: int | None
     receiving_unit_id: int | None

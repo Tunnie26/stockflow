@@ -39,6 +39,11 @@ class Transaction(Base):
         nullable=False,
     )
 
+    destination_warehouse_id: Mapped[int | None] = mapped_column(
+        ForeignKey("warehouses.id"),
+        nullable=True,
+    )
+
     supplier_id: Mapped[int | None] = mapped_column(
         ForeignKey("suppliers.id"),
         nullable=True,
