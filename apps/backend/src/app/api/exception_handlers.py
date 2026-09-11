@@ -8,9 +8,18 @@ from app.exceptions import AppError
 logger = logging.getLogger(__name__)
 
 
-async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+async def app_error_handler(
+    request: Request,
+    exc: AppError,
+) -> JSONResponse:
     return JSONResponse(
-        status_code=400, content={"error": {"code": exc.code, "message": exc.message}}
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": exc.code,
+                "message": exc.message,
+            }
+        },
     )
 
 

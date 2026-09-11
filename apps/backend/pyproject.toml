@@ -25,6 +25,8 @@ module-name = "app"
 
 [dependency-groups]
 dev = [
+    "anyio<4.15",
+    "httpx2>=2.12.0",
     "pytest>=9.1.1",
     "ruff>=0.16.6",
 ]
