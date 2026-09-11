@@ -1,13 +1,13 @@
-from app.models.customer import Customer
-from app.models.location import Location
-from app.models.material import Material
-from app.models.material_category import MaterialCategory
-from app.models.material_customer import MaterialCustomer
-from app.models.material_supplier import MaterialSupplier
-from app.models.receiving_unit import ReceivingUnit
-from app.models.stock_balance import StockBalance
-from app.models.stock_movement import StockMovement
-from app.models.supplier import Supplier
-from app.models.transaction import Transaction
-from app.models.transaction_detail import TransactionDetail
-from app.models.warehouse import Warehouse
+from app.models.customer import Customer  # noqa: F401
+from app.models.location import Location  # noqa: F401
+from app.models.material import Material  # noqa: F401
+from app.models.material_category import MaterialCategory  # noqa: F401
+from app.models.material_customer import MaterialCustomer  # noqa: F401
+from app.models.material_supplier import MaterialSupplier  # noqa: F401
+from app.models.receiving_unit import ReceivingUnit  # noqa: F401
+from app.models.stock_balance import StockBalance  # noqa: F401
+from app.models.stock_movement import StockMovement  # noqa: F401
+from app.models.supplier import Supplier  # noqa: F401
+from app.models.transaction import Transaction  # noqa: F401
+from app.models.transaction_detail import TransactionDetail  # noqa: F401
+from app.models.warehouse import Warehouse  # noqa: F401
