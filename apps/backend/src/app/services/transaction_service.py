@@ -126,10 +126,7 @@ class TransactionService:
         self,
         payload: TransactionCreate,
     ) -> None:
-        if (
-            payload.receiving_unit_id is None
-            and not payload.other_recipient
-        ):
+        if payload.receiving_unit_id is None and not payload.other_recipient:
             raise AppError(
                 "Receiving unit or other recipient is required "
                 "for outbound transaction",
@@ -137,9 +134,7 @@ class TransactionService:
             )
 
         if payload.receiving_unit_id is not None:
-            self._validate_receiving_unit(
-                payload.receiving_unit_id
-            )
+            self._validate_receiving_unit(payload.receiving_unit_id)
 
         if payload.supplier_id is not None:
             raise AppError(
@@ -169,9 +164,7 @@ class TransactionService:
                 code="INVALID_TRANSFER",
             )
 
-        self._validate_warehouse(
-            payload.destination_warehouse_id
-        )
+        self._validate_warehouse(payload.destination_warehouse_id)
 
         if payload.supplier_id is not None:
             raise AppError(
@@ -196,9 +189,7 @@ class TransactionService:
         warehouse_id: int,
     ) -> Warehouse:
         warehouse = self.db.scalar(
-            select(Warehouse).where(
-                Warehouse.id == warehouse_id
-            )
+            select(Warehouse).where(Warehouse.id == warehouse_id)
         )
 
         if warehouse is None:
@@ -220,11 +211,7 @@ class TransactionService:
         self,
         supplier_id: int,
     ) -> Supplier:
-        supplier = self.db.scalar(
-            select(Supplier).where(
-                Supplier.id == supplier_id
-            )
-        )
+        supplier = self.db.scalar(select(Supplier).where(Supplier.id == supplier_id))
 
         if supplier is None:
             raise AppError(
@@ -246,9 +233,7 @@ class TransactionService:
         receiving_unit_id: int,
     ) -> ReceivingUnit:
         receiving_unit = self.db.scalar(
-            select(ReceivingUnit).where(
-                ReceivingUnit.id == receiving_unit_id
-            )
+            select(ReceivingUnit).where(ReceivingUnit.id == receiving_unit_id)
         )
 
         if receiving_unit is None:
@@ -271,11 +256,7 @@ class TransactionService:
         material_id: int,
         warehouse_id: int,
     ) -> Material:
-        material = self.db.scalar(
-            select(Material).where(
-                Material.id == material_id
-            )
-        )
+        material = self.db.scalar(select(Material).where(Material.id == material_id))
 
         if material is None:
             raise AppError(

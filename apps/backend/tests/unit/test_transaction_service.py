@@ -20,11 +20,7 @@ def make_detail(
     return TransactionDetailCreate(
         material_id=material_id,
         quantity=Decimal(quantity),
-        unit_price=(
-            Decimal(unit_price)
-            if unit_price is not None
-            else None
-        ),
+        unit_price=(Decimal(unit_price) if unit_price is not None else None),
     )
 
 
@@ -237,10 +233,7 @@ def test_create_transfer_success():
     assert result.transaction_no == 41
     assert result.transaction_type == TransactionType.TRANSFER
     assert result.warehouse_id == source_warehouse.id
-    assert (
-        result.destination_warehouse_id
-        == destination_warehouse.id
-    )
+    assert result.destination_warehouse_id == destination_warehouse.id
 
 
 def test_create_inbound_without_supplier():
@@ -684,15 +677,10 @@ def test_material_snapshot_and_total_amount():
 
     result = service.create(payload)
 
-    added_objects = [
-        call.args[0]
-        for call in db.add.call_args_list
-    ]
+    added_objects = [call.args[0] for call in db.add.call_args_list]
 
     detail = next(
-        obj
-        for obj in added_objects
-        if obj.__class__.__name__ == "TransactionDetail"
+        obj for obj in added_objects if obj.__class__.__name__ == "TransactionDetail"
     )
 
     assert result.transaction_no == 81
@@ -734,15 +722,10 @@ def test_total_amount_is_none_without_unit_price():
 
     service.create(payload)
 
-    added_objects = [
-        call.args[0]
-        for call in db.add.call_args_list
-    ]
+    added_objects = [call.args[0] for call in db.add.call_args_list]
 
     detail = next(
-        obj
-        for obj in added_objects
-        if obj.__class__.__name__ == "TransactionDetail"
+        obj for obj in added_objects if obj.__class__.__name__ == "TransactionDetail"
     )
 
     assert detail.total_amount is None
