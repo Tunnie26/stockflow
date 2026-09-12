@@ -8,6 +8,7 @@ from app.api.v1.inventory import router as inventory_router
 from app.api.v1.locations import router as locations_router
 from app.api.v1.material_categories import router as material_categories_router
 from app.api.v1.materials import router as materials_router
+from app.api.v1.movements import router as movements_router
 from app.api.v1.receiving_units import router as receiving_units_router
 from app.api.v1.suppliers import router as suppliers_router
 from app.api.v1.transactions import router as transactions_router
@@ -47,3 +48,5 @@ router.include_router(
 )
 
 router.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
+
+router.include_router(movements_router, prefix="/movements", tags=["Movements"])
