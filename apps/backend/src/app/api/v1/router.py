@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
 from app.api.v1.customers import router as customers_router
+from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.inventory import router as inventory_router
 from app.api.v1.locations import router as locations_router
 from app.api.v1.material_categories import router as material_categories_router
@@ -50,3 +51,5 @@ router.include_router(
 router.include_router(inventory_router, prefix="/inventory", tags=["Inventory"])
 
 router.include_router(movements_router, prefix="/movements", tags=["Movements"])
+
+router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
