@@ -1,0 +1,23 @@
+from decimal import Decimal
+
+from pydantic import BaseModel, ConfigDict
+
+
+class InventoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    material_id: int
+    sku: str
+    name: str
+    unit: str
+
+    warehouse_id: int
+    warehouse_code: str
+    warehouse_name: str
+
+    location_id: int | None
+    location_code: str | None
+
+    quantity: Decimal
+    minimum_stock: Decimal
+    is_active: bool
