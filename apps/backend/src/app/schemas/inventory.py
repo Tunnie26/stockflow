@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class InventoryResponse(BaseModel):
@@ -21,3 +21,10 @@ class InventoryResponse(BaseModel):
     quantity: Decimal
     minimum_stock: Decimal
     is_active: bool
+
+
+class InventoryQueryParams(BaseModel):
+    warehouse_id: int | None = Field(default=None, gt=0)
+    category_id: int | None = Field(default=None, gt=0)
+    search: str | None = Field(default=None, min_length=1)
+    low_stock: bool | None = None
