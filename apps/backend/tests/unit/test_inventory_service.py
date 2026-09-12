@@ -223,3 +223,36 @@ def test_outbound_allows_negative_stock():
 
     assert balance.quantity == Decimal("-50")
     assert movement.quantity == Decimal("-150")
+
+
+def test_apply_adjustment_without_existing_balance():
+    db = MagicMock()
+
+    detail = make_detail(quantity="0")
+
+    db.scalar.return_value = None
+
+    service = InventoryService(db)
+
+    movement = service.apply_adjustment(
+        detail,
+        actual_quantity=Decimal("25"),
+    )
+
+    added_objects = [call.args[0] for call in db.add.call_args_list]
+
+    balance = next(obj for obj in added_objects if isinstance(obj, StockBalance))
+
+    movement_obj = next(obj for obj in added_objects if isinstance(obj, StockMovement))
+
+    assert balance.material_id == detail.material_id
+    assert balance.quantity == Decimal("25")
+
+    assert movement_obj is movement
+    assert movement_obj.transaction_id == detail.transaction_id
+    assert movement_obj.transaction_detail_id == detail.id
+    assert movement_obj.material_id == detail.material_id
+    assert movement_obj.quantity == Decimal("25")
+
+    assert db.add.call_count == 2
+    assert db.flush.call_count == 2

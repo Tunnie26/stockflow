@@ -64,3 +64,16 @@ class TransactionResponse(BaseModel):
     created_at: datetime
 
     details: list[TransactionDetailResponse]
+
+
+class AdjustmentDetailCreate(BaseModel):
+    material_id: int
+    actual_quantity: Decimal = Field(ge=0)
+    note: str | None = Field(default=None, max_length=1000)
+
+
+class AdjustmentCreate(BaseModel):
+    warehouse_id: int
+    transaction_date: date
+    reason: str = Field(min_length=1, max_length=1000)
+    details: list[AdjustmentDetailCreate] = Field(min_length=1)
