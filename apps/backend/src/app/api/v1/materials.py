@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.material import MaterialCreate, MaterialResponse, MaterialUpdate
+from app.schemas.material import MaterialCreate, MaterialUpdate
 from app.schemas.response import SuccessResponse
-from app.services.material import MaterialService
+from app.services.material import MaterialService, to_response
 
 router = APIRouter()
 
@@ -25,9 +25,7 @@ def create_material(
         db.commit()
         db.refresh(material)
 
-        return SuccessResponse(
-            data=MaterialResponse.model_validate(material),
-        )
+        return SuccessResponse(data=to_response(material))
     except Exception:
         db.rollback()
         raise
@@ -44,7 +42,7 @@ def list_materials(
     materials = service.list_materials()
 
     return SuccessResponse(
-        data=[MaterialResponse.model_validate(material) for material in materials],
+        data=[to_response(material) for material in materials],
     )
 
 
@@ -60,7 +58,7 @@ def get_material(
     material = service.get_material(material_id)
 
     return SuccessResponse(
-        data=MaterialResponse.model_validate(material),
+        data=to_response(material),
     )
 
 
@@ -81,7 +79,7 @@ def update_material(
         db.refresh(material)
 
         return SuccessResponse(
-            data=MaterialResponse.model_validate(material),
+            data=to_response(material),
         )
     except Exception:
         db.rollback()

@@ -1,11 +1,12 @@
 from decimal import Decimal
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.exceptions import AppError
 from app.models.location import Location
 from app.models.material import Material
+from app.models.material_customer import MaterialCustomer
 from app.models.stock_balance import StockBalance
 from app.models.warehouse import Warehouse
 from app.schemas.inventory import InventoryQueryParams, InventoryResponse
@@ -58,6 +59,14 @@ class InventoryQueryService:
 
         if params.category_id is not None:
             statement = statement.where(Material.category_id == params.category_id)
+
+        if params.customer_id is not None:
+            statement = statement.where(
+                exists().where(
+                    MaterialCustomer.material_id == Material.id,
+                    MaterialCustomer.customer_id == params.customer_id,
+                )
+            )
 
         if params.search is not None:
             search_pattern = f"%{params.search}%"

@@ -26,5 +26,6 @@ class InventoryResponse(BaseModel):
 class InventoryQueryParams(BaseModel):
     warehouse_id: int | None = Field(default=None, gt=0)
     category_id: int | None = Field(default=None, gt=0)
+    customer_id: int | None = Field(default=None, gt=0)
     search: str | None = Field(default=None, min_length=1)
     low_stock: bool | None = None

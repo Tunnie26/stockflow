@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -11,9 +12,12 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.customer import Customer
 
 
 class Material(Base):
@@ -95,4 +99,10 @@ class Material(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+    customers: Mapped[list["Customer"]] = relationship(
+        "Customer",
+        secondary="material_customers",
+        back_populates="materials",
     )
