@@ -12,4 +12,5 @@ from app.models.stock_movement import StockMovement  # noqa: F401
 from app.models.supplier import Supplier  # noqa: F401
 from app.models.transaction import Transaction  # noqa: F401
 from app.models.transaction_detail import TransactionDetail  # noqa: F401
+from app.models.user import User, UserRole  # noqa: F401
 from app.models.warehouse import Warehouse  # noqa: F401
