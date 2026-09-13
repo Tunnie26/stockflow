@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
+from app.api.v1.auth import router as auth_router
 from app.api.v1.customers import router as customers_router
 from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.inventory import router as inventory_router
@@ -24,6 +25,8 @@ def database_check(db: Session = Depends(get_db)):  # noqa: B008
     result = db.execute(text("SELECT 1"))
     return {"database": result.scalar_one()}
 
+
+router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 
 router.include_router(materials_router, prefix="/materials", tags=["Materials"])
 
