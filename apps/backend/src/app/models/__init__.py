@@ -1,4 +1,6 @@
 from app.models.customer import Customer  # noqa: F401
+from app.models.inventory_check import InventoryCheck  # noqa: F401
+from app.models.inventory_check_detail import InventoryCheckDetail  # noqa: F401
 from app.models.location import Location  # noqa: F401
 from app.models.material import Material  # noqa: F401
 from app.models.material_category import MaterialCategory  # noqa: F401

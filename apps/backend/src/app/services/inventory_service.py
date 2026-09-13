@@ -115,7 +115,9 @@ class InventoryService:
         material_id: int,
     ) -> StockBalance:
         balance = self.db.scalar(
-            select(StockBalance).where(StockBalance.material_id == material_id)
+            select(StockBalance).where(
+                StockBalance.material_id == material_id,
+            )
         )
 
         if balance is None:
