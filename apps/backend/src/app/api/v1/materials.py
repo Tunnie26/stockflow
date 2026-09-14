@@ -1,34 +1,13 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.material import MaterialCreate, MaterialUpdate
 from app.schemas.response import SuccessResponse
 from app.services.material import MaterialService, to_response
 
 router = APIRouter()
-
-
-@router.post(
-    "",
-    response_model=SuccessResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_material(
-    data: MaterialCreate,
-    db: Session = Depends(get_db),  # noqa: B008
-):
-    service = MaterialService(db)
-
-    try:
-        material = service.create_material(data)
-        db.commit()
-        db.refresh(material)
-
-        return SuccessResponse(data=to_response(material))
-    except Exception:
-        db.rollback()
-        raise
 
 
 @router.get(
@@ -37,6 +16,7 @@ def create_material(
 )
 def list_materials(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = MaterialService(db)
     materials = service.list_materials()
@@ -53,6 +33,7 @@ def list_materials(
 def get_material(
     material_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = MaterialService(db)
     material = service.get_material(material_id)
@@ -60,6 +41,29 @@ def get_material(
     return SuccessResponse(
         data=to_response(material),
     )
+
+
+@router.post(
+    "",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_material(
+    data: MaterialCreate,
+    db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
+):
+    service = MaterialService(db)
+
+    try:
+        material = service.create_material(data)
+        db.commit()
+        db.refresh(material)
+
+        return SuccessResponse(data=to_response(material))
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.patch(
@@ -70,6 +74,7 @@ def update_material(
     material_id: int,
     data: MaterialUpdate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = MaterialService(db)
 

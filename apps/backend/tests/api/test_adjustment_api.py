@@ -1,13 +1,7 @@
 from decimal import Decimal
 
-from fastapi.testclient import TestClient
 
-from app.main import app
-
-client = TestClient(app)
-
-
-def test_create_adjustment_transaction():
+def test_create_adjustment_transaction(client, admin_headers):
     warehouse_response = client.post(
         "/api/v1/warehouses",
         json={
@@ -16,7 +10,9 @@ def test_create_adjustment_transaction():
             "address": None,
             "note": None,
         },
+        headers=admin_headers,
     )
+
     assert warehouse_response.status_code == 200
 
     warehouse_id = warehouse_response.json()["data"]["id"]
@@ -28,7 +24,9 @@ def test_create_adjustment_transaction():
             "name": "Adjustment Category",
             "description": None,
         },
+        headers=admin_headers,
     )
+
     assert category_response.status_code == 200
 
     category_id = category_response.json()["data"]["id"]
@@ -45,7 +43,9 @@ def test_create_adjustment_transaction():
             "minimum_stock": 0,
             "note": None,
         },
+        headers=admin_headers,
     )
+
     assert material_response.status_code == 201
 
     material_id = material_response.json()["data"]["id"]
@@ -64,6 +64,7 @@ def test_create_adjustment_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -84,7 +85,10 @@ def test_create_adjustment_transaction():
     assert detail["total_amount"] is None
 
 
-def test_create_adjustment_decreases_existing_stock():
+def test_create_adjustment_decreases_existing_stock(
+    client,
+    admin_headers,
+):
     warehouse_response = client.post(
         "/api/v1/warehouses",
         json={
@@ -93,7 +97,9 @@ def test_create_adjustment_decreases_existing_stock():
             "address": None,
             "note": None,
         },
+        headers=admin_headers,
     )
+
     assert warehouse_response.status_code == 200
 
     warehouse_id = warehouse_response.json()["data"]["id"]
@@ -105,7 +111,9 @@ def test_create_adjustment_decreases_existing_stock():
             "name": "Adjustment Existing Stock Category",
             "description": None,
         },
+        headers=admin_headers,
     )
+
     assert category_response.status_code == 200
 
     category_id = category_response.json()["data"]["id"]
@@ -122,7 +130,9 @@ def test_create_adjustment_decreases_existing_stock():
             "minimum_stock": 0,
             "note": None,
         },
+        headers=admin_headers,
     )
+
     assert material_response.status_code == 201
 
     material_id = material_response.json()["data"]["id"]
@@ -138,7 +148,9 @@ def test_create_adjustment_decreases_existing_stock():
             "tax_code": None,
             "note": None,
         },
+        headers=admin_headers,
     )
+
     assert supplier_response.status_code == 200
 
     supplier_id = supplier_response.json()["data"]["id"]
@@ -159,6 +171,7 @@ def test_create_adjustment_decreases_existing_stock():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert inbound_response.status_code == 200
@@ -177,6 +190,7 @@ def test_create_adjustment_decreases_existing_stock():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert adjustment_response.status_code == 200

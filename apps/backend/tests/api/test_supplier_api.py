@@ -2,16 +2,15 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app.main import app
-
-client = TestClient(app)
-
 
 def unique_code(prefix: str = "NCC-TEST") -> str:
     return f"{prefix}-{uuid4().hex[:8].upper()}"
 
 
-def create_test_supplier() -> int:
+def create_test_supplier(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     response = client.post(
         "/api/v1/suppliers",
         json={
@@ -24,6 +23,7 @@ def create_test_supplier() -> int:
             "contact_person": "Test Contact",
             "note": "Test supplier",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -31,7 +31,7 @@ def create_test_supplier() -> int:
     return response.json()["data"]["id"]
 
 
-def test_create_supplier():
+def test_create_supplier(client, admin_headers):
     code = unique_code()
 
     response = client.post(
@@ -46,6 +46,7 @@ def test_create_supplier():
             "contact_person": "Nguyen Van A",
             "note": "Test",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -57,7 +58,7 @@ def test_create_supplier():
     assert data["is_active"] is True
 
 
-def test_create_supplier_duplicate_code():
+def test_create_supplier_duplicate_code(client, admin_headers):
     code = unique_code()
 
     payload = {
@@ -68,6 +69,7 @@ def test_create_supplier_duplicate_code():
     first_response = client.post(
         "/api/v1/suppliers",
         json=payload,
+        headers=admin_headers,
     )
 
     assert first_response.status_code == 200
@@ -75,16 +77,20 @@ def test_create_supplier_duplicate_code():
     second_response = client.post(
         "/api/v1/suppliers",
         json=payload,
+        headers=admin_headers,
     )
 
     assert second_response.status_code == 400
-    assert second_response.json()["error"]["code"] == ("SUPPLIER_CODE_ALREADY_EXISTS")
+    assert second_response.json()["error"]["code"] == "SUPPLIER_CODE_ALREADY_EXISTS"
 
 
-def test_list_suppliers():
-    create_test_supplier()
+def test_list_suppliers(client, admin_headers):
+    create_test_supplier(client, admin_headers)
 
-    response = client.get("/api/v1/suppliers")
+    response = client.get(
+        "/api/v1/suppliers",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -94,10 +100,16 @@ def test_list_suppliers():
     assert len(data) >= 1
 
 
-def test_get_supplier():
-    supplier_id = create_test_supplier()
+def test_get_supplier(client, admin_headers):
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
-    response = client.get(f"/api/v1/suppliers/{supplier_id}")
+    response = client.get(
+        f"/api/v1/suppliers/{supplier_id}",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -106,15 +118,21 @@ def test_get_supplier():
     assert data["id"] == supplier_id
 
 
-def test_get_supplier_not_found():
-    response = client.get("/api/v1/suppliers/999999999")
+def test_get_supplier_not_found(client, admin_headers):
+    response = client.get(
+        "/api/v1/suppliers/999999999",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "SUPPLIER_NOT_FOUND"
 
 
-def test_update_supplier():
-    supplier_id = create_test_supplier()
+def test_update_supplier(client, admin_headers):
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     response = client.patch(
         f"/api/v1/suppliers/{supplier_id}",
@@ -123,6 +141,7 @@ def test_update_supplier():
             "phone": "0911111111",
             "note": "Updated",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -135,14 +154,18 @@ def test_update_supplier():
     assert data["note"] == "Updated"
 
 
-def test_update_supplier_code_is_immutable():
-    supplier_id = create_test_supplier()
+def test_update_supplier_code_is_immutable(client, admin_headers):
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     response = client.patch(
         f"/api/v1/suppliers/{supplier_id}",
         json={
             "code": "NEW-CODE",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -153,12 +176,13 @@ def test_update_supplier_code_is_immutable():
     assert data["code"] != "NEW-CODE"
 
 
-def test_update_supplier_not_found():
+def test_update_supplier_not_found(client, admin_headers):
     response = client.patch(
         "/api/v1/suppliers/999999999",
         json={
             "name": "Updated Supplier",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 404

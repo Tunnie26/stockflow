@@ -2,16 +2,15 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app.main import app
-
-client = TestClient(app)
-
 
 def unique_code(prefix: str = "CUS-TEST") -> str:
     return f"{prefix}-{uuid4().hex[:8].upper()}"
 
 
-def create_test_customer() -> int:
+def create_test_customer(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     response = client.post(
         "/api/v1/customers",
         json={
@@ -19,6 +18,7 @@ def create_test_customer() -> int:
             "name": "Test Customer",
             "note": "Test customer",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -26,14 +26,21 @@ def create_test_customer() -> int:
     return response.json()["data"]["id"]
 
 
-def test_customer_code_is_immutable():
-    customer_id = create_test_customer()
+def test_customer_code_is_immutable(
+    client,
+    admin_headers,
+):
+    customer_id = create_test_customer(
+        client,
+        admin_headers,
+    )
 
     response = client.patch(
         f"/api/v1/customers/{customer_id}",
         json={
             "code": "NEW-CODE",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200

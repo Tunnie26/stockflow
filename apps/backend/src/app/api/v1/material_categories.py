@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.material_category import (
     MaterialCategoryCreate,
     MaterialCategoryResponse,
@@ -17,6 +18,7 @@ router = APIRouter()
 def create_material_category(
     data: MaterialCategoryCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = MaterialCategoryService(db)
 
@@ -34,6 +36,7 @@ def create_material_category(
 @router.get("", response_model=SuccessResponse)
 def list_material_categories(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = MaterialCategoryService(db)
 
@@ -53,6 +56,7 @@ def list_material_categories(
 def get_material_category(
     category_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = MaterialCategoryService(db)
 
@@ -69,6 +73,7 @@ def update_material_category(
     category_id: int,
     data: MaterialCategoryUpdate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = MaterialCategoryService(db)
 

@@ -2,12 +2,11 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
-
-
-def create_test_warehouse() -> int:
+def create_test_warehouse(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"WH-TRANSACTION-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -16,6 +15,7 @@ def create_test_warehouse() -> int:
             "code": code,
             "name": "Transaction Test Warehouse",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -23,7 +23,10 @@ def create_test_warehouse() -> int:
     return response.json()["data"]["id"]
 
 
-def create_test_category() -> int:
+def create_test_category(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"CAT-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -32,6 +35,7 @@ def create_test_category() -> int:
             "code": code,
             "name": "Transaction Test Category",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -40,6 +44,8 @@ def create_test_category() -> int:
 
 
 def create_test_material(
+    client: TestClient,
+    admin_headers: dict[str, str],
     warehouse_id: int,
     category_id: int,
 ) -> int:
@@ -58,6 +64,7 @@ def create_test_material(
             "minimum_stock": 0,
             "note": None,
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 201
@@ -65,7 +72,10 @@ def create_test_material(
     return response.json()["data"]["id"]
 
 
-def create_test_supplier() -> int:
+def create_test_supplier(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"NCC-TRANSACTION-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -74,6 +84,7 @@ def create_test_supplier() -> int:
             "code": code,
             "name": "Transaction Test Supplier",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -81,14 +92,18 @@ def create_test_supplier() -> int:
     return response.json()["data"]["id"]
 
 
-def test_create_inbound_transaction():
-    warehouse_id = create_test_warehouse()
-    category_id = create_test_category()
+def test_create_inbound_transaction(client, admin_headers):
+    warehouse_id = create_test_warehouse(client, admin_headers)
+    category_id = create_test_category(client, admin_headers)
+
     material_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
-    supplier_id = create_test_supplier()
+
+    supplier_id = create_test_supplier(client, admin_headers)
 
     response = client.post(
         "/api/v1/transactions",
@@ -110,6 +125,7 @@ def test_create_inbound_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -135,14 +151,18 @@ def test_create_inbound_transaction():
     assert detail["total_amount"] == "150000.00"
 
 
-def test_create_outbound_transaction():
-    warehouse_id = create_test_warehouse()
-    category_id = create_test_category()
+def test_create_outbound_transaction(client, admin_headers):
+    warehouse_id = create_test_warehouse(client, admin_headers)
+    category_id = create_test_category(client, admin_headers)
+
     material_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
-    supplier_id = create_test_supplier()
+
+    supplier_id = create_test_supplier(client, admin_headers)
 
     inbound_response = client.post(
         "/api/v1/transactions",
@@ -158,6 +178,7 @@ def test_create_outbound_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert inbound_response.status_code == 200
@@ -177,6 +198,7 @@ def test_create_outbound_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert outbound_response.status_code == 200
@@ -190,18 +212,33 @@ def test_create_outbound_transaction():
     assert data["details"][0]["quantity"] == "4.0000"
 
 
-def test_create_transfer_transaction():
-    source_warehouse_id = create_test_warehouse()
-    destination_warehouse_id = create_test_warehouse()
+def test_create_transfer_transaction(client, admin_headers):
+    source_warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
-    category_id = create_test_category()
+    destination_warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
+
+    category_id = create_test_category(
+        client,
+        admin_headers,
+    )
 
     material_id = create_test_material(
+        client,
+        admin_headers,
         source_warehouse_id,
         category_id,
     )
 
-    supplier_id = create_test_supplier()
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     inbound_response = client.post(
         "/api/v1/transactions",
@@ -217,6 +254,7 @@ def test_create_transfer_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert inbound_response.status_code == 200
@@ -239,6 +277,7 @@ def test_create_transfer_transaction():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert transfer_response.status_code == 200
@@ -261,21 +300,38 @@ def test_create_transfer_transaction():
     assert detail["quantity"] == "4.0000"
 
 
-def test_create_inbound_transaction_with_multiple_details():
-    warehouse_id = create_test_warehouse()
-    category_id = create_test_category()
+def test_create_inbound_transaction_with_multiple_details(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
+
+    category_id = create_test_category(
+        client,
+        admin_headers,
+    )
 
     material_1_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
 
     material_2_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
 
-    supplier_id = create_test_supplier()
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     response = client.post(
         "/api/v1/transactions",
@@ -298,6 +354,7 @@ def test_create_inbound_transaction_with_multiple_details():
                 },
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -321,22 +378,43 @@ def test_create_inbound_transaction_with_multiple_details():
     assert details[material_2_id]["total_amount"] == "400000.00"
 
 
-def test_create_transaction_rolls_back_on_invalid_detail():
-    warehouse_id = create_test_warehouse()
-    other_warehouse_id = create_test_warehouse()
-    category_id = create_test_category()
+def test_create_transaction_rolls_back_on_invalid_detail(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
+
+    other_warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
+
+    category_id = create_test_category(
+        client,
+        admin_headers,
+    )
 
     valid_material_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
 
     invalid_material_id = create_test_material(
+        client,
+        admin_headers,
         other_warehouse_id,
         category_id,
     )
 
-    supplier_id = create_test_supplier()
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     response = client.post(
         "/api/v1/transactions",
@@ -357,6 +435,7 @@ def test_create_transaction_rolls_back_on_invalid_detail():
                 },
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400

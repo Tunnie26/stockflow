@@ -47,6 +47,41 @@ def main() -> None:
         print(f"Found {len(material_ids)} test materials")
 
         # ---------------------------------------------------------
+        # 2.1 Find RBAC test materials
+        # ---------------------------------------------------------
+        rbac_material_rows = conn.execute(
+            text(
+                """
+                SELECT id
+                FROM materials
+                WHERE sku LIKE 'RBAC-%'
+                """
+            )
+        ).all()
+
+        rbac_material_ids = [row[0] for row in rbac_material_rows]
+
+        material_ids.extend(
+            material_id
+            for material_id in rbac_material_ids
+            if material_id not in material_ids
+        )
+
+        print(f"Found {len(rbac_material_ids)} RBAC test materials")
+
+        if material_ids:
+            result = conn.execute(
+                text(
+                    """
+                    DELETE FROM materials
+                    WHERE id = ANY(:material_ids)
+                    """
+                ),
+                {"material_ids": material_ids},
+            )
+            print(f"Deleted {result.rowcount} RBAC test materials")
+
+        # ---------------------------------------------------------
         # 3. Find transactions belonging to test warehouses
         # ---------------------------------------------------------
         transaction_ids: list[int] = []

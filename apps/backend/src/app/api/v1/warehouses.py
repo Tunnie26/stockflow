@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.response import SuccessResponse
 from app.schemas.warehouse import WarehouseCreate, WarehouseResponse, WarehouseUpdate
 from app.services.warehouse import WarehouseService
@@ -13,6 +14,7 @@ router = APIRouter()
 def create_warehouse(
     data: WarehouseCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = WarehouseService(db)
 
@@ -30,6 +32,7 @@ def create_warehouse(
 @router.get("", response_model=SuccessResponse)
 def list_warehouses(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = WarehouseService(db)
 
@@ -44,6 +47,7 @@ def list_warehouses(
 def get_warehouse(
     warehouse_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = WarehouseService(db)
 
@@ -57,6 +61,7 @@ def update_warehouse(
     warehouse_id: int,
     data: WarehouseUpdate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = WarehouseService(db)
 

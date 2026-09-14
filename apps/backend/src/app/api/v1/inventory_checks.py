@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.inventory_check import (
     InventoryCheckCreate,
 )
@@ -18,6 +19,7 @@ router = APIRouter()
 def create_inventory_check(
     data: InventoryCheckCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = InventoryCheckService(db)
 
@@ -40,6 +42,7 @@ def create_inventory_check(
 @router.get("", response_model=SuccessResponse)
 def list_inventory_checks(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = InventoryCheckQueryService(db)
 
@@ -52,6 +55,7 @@ def list_inventory_checks(
 def get_inventory_check(
     inventory_check_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = InventoryCheckQueryService(db)
 

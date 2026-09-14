@@ -2,12 +2,11 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
-
-
-def create_test_warehouse() -> int:
+def create_test_warehouse(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"WH-INVENTORY-CHECK-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -16,13 +15,18 @@ def create_test_warehouse() -> int:
             "code": code,
             "name": "Inventory Check Test Warehouse",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
+
     return response.json()["data"]["id"]
 
 
-def create_test_category() -> int:
+def create_test_category(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"CAT-INVENTORY-CHECK-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -31,13 +35,17 @@ def create_test_category() -> int:
             "code": code,
             "name": "Inventory Check Test Category",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
+
     return response.json()["data"]["id"]
 
 
 def create_test_material(
+    client: TestClient,
+    admin_headers: dict[str, str],
     warehouse_id: int,
     category_id: int,
 ) -> int:
@@ -56,13 +64,18 @@ def create_test_material(
             "minimum_stock": 0,
             "note": None,
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 201
+
     return response.json()["data"]["id"]
 
 
-def create_test_supplier() -> int:
+def create_test_supplier(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"NCC-INVENTORY-CHECK-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -71,13 +84,17 @@ def create_test_supplier() -> int:
             "code": code,
             "name": "Inventory Check Test Supplier",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
+
     return response.json()["data"]["id"]
 
 
 def create_initial_stock(
+    client: TestClient,
+    admin_headers: dict[str, str],
     warehouse_id: int,
     material_id: int,
     supplier_id: int,
@@ -97,21 +114,41 @@ def create_initial_stock(
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
 
 
-def test_create_inventory_check_creates_adjustment_and_updates_stock():
-    warehouse_id = create_test_warehouse()
-    category_id = create_test_category()
+def test_create_inventory_check_creates_adjustment_and_updates_stock(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
+
+    category_id = create_test_category(
+        client,
+        admin_headers,
+    )
+
     material_id = create_test_material(
+        client,
+        admin_headers,
         warehouse_id,
         category_id,
     )
-    supplier_id = create_test_supplier()
+
+    supplier_id = create_test_supplier(
+        client,
+        admin_headers,
+    )
 
     create_initial_stock(
+        client,
+        admin_headers,
         warehouse_id,
         material_id,
         supplier_id,
@@ -132,6 +169,7 @@ def test_create_inventory_check_creates_adjustment_and_updates_stock():
                 }
             ],
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -148,7 +186,10 @@ def test_create_inventory_check_creates_adjustment_and_updates_stock():
     assert detail["actual_quantity"] == "7.0000"
     assert detail["difference"] == "-3.0000"
 
-    inventory_response = client.get(f"/api/v1/inventory/{material_id}")
+    inventory_response = client.get(
+        f"/api/v1/inventory/{material_id}",
+        headers=admin_headers,
+    )
 
     assert inventory_response.status_code == 200
 
@@ -162,6 +203,7 @@ def test_create_inventory_check_creates_adjustment_and_updates_stock():
             "material_id": material_id,
             "transaction_type": "ADJUSTMENT",
         },
+        headers=admin_headers,
     )
 
     assert movement_response.status_code == 200

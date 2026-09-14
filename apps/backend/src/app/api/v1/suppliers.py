@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.response import SuccessResponse
 from app.schemas.supplier import SupplierCreate, SupplierResponse, SupplierUpdate
 from app.services.supplier import SupplierService
@@ -13,6 +14,7 @@ router = APIRouter()
 def create_supplier(
     data: SupplierCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = SupplierService(db)
 
@@ -30,6 +32,7 @@ def create_supplier(
 @router.get("", response_model=SuccessResponse)
 def list_suppliers(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = SupplierService(db)
     suppliers = service.list_suppliers()
@@ -46,6 +49,7 @@ def list_suppliers(
 def get_supplier(
     supplier_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = SupplierService(db)
     supplier = service.get_supplier(supplier_id)
@@ -61,6 +65,7 @@ def update_supplier(
     supplier_id: int,
     data: SupplierUpdate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = SupplierService(db)
 

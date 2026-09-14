@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import (
+    get_db,
+    require_admin,
+    require_user,
+)
+from app.models.user import User
 from app.schemas.response import SuccessResponse
 from app.schemas.transaction import (
     AdjustmentCreate,
@@ -18,6 +23,7 @@ router = APIRouter()
 def create_transaction(
     data: TransactionCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = TransactionService(db)
 
@@ -37,6 +43,7 @@ def create_transaction(
 def create_adjustment(
     data: AdjustmentCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_admin()),  # noqa: B008
 ):
     service = AdjustmentService(db)
 

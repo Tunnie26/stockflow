@@ -2,12 +2,11 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
-
-
-def create_test_warehouse() -> int:
+def create_test_warehouse(
+    client: TestClient,
+    admin_headers: dict[str, str],
+) -> int:
     code = f"WH-LOCATION-{uuid4().hex[:8].upper()}"
 
     response = client.post(
@@ -16,6 +15,7 @@ def create_test_warehouse() -> int:
             "code": code,
             "name": "Location Test Warehouse",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -23,8 +23,11 @@ def create_test_warehouse() -> int:
     return response.json()["data"]["id"]
 
 
-def test_create_location():
-    warehouse_id = create_test_warehouse()
+def test_create_location(client, admin_headers):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     response = client.post(
         "/api/v1/locations",
@@ -34,6 +37,7 @@ def test_create_location():
             "name": "Location A01",
             "description": "Test location",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -48,7 +52,10 @@ def test_create_location():
     assert body["data"]["is_active"] is True
 
 
-def test_create_location_warehouse_not_found():
+def test_create_location_warehouse_not_found(
+    client,
+    admin_headers,
+):
     response = client.post(
         "/api/v1/locations",
         json={
@@ -56,6 +63,7 @@ def test_create_location_warehouse_not_found():
             "code": "A01",
             "name": "Location A01",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400
@@ -66,14 +74,21 @@ def test_create_location_warehouse_not_found():
     assert body["error"]["code"] == "WAREHOUSE_NOT_FOUND"
 
 
-def test_create_location_inactive_warehouse():
-    warehouse_id = create_test_warehouse()
+def test_create_location_inactive_warehouse(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     response = client.patch(
         f"/api/v1/warehouses/{warehouse_id}",
         json={
             "is_active": False,
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -85,6 +100,7 @@ def test_create_location_inactive_warehouse():
             "code": "A02",
             "name": "Inactive Warehouse Location",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400
@@ -95,8 +111,14 @@ def test_create_location_inactive_warehouse():
     assert body["error"]["code"] == "WAREHOUSE_INACTIVE"
 
 
-def test_create_location_duplicate_code():
-    warehouse_id = create_test_warehouse()
+def test_create_location_duplicate_code(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     first_response = client.post(
         "/api/v1/locations",
@@ -105,6 +127,7 @@ def test_create_location_duplicate_code():
             "code": "DUP01",
             "name": "First Location",
         },
+        headers=admin_headers,
     )
 
     assert first_response.status_code == 200
@@ -116,6 +139,7 @@ def test_create_location_duplicate_code():
             "code": "DUP01",
             "name": "Second Location",
         },
+        headers=admin_headers,
     )
 
     assert second_response.status_code == 400
@@ -126,8 +150,11 @@ def test_create_location_duplicate_code():
     assert body["error"]["code"] == "LOCATION_CODE_ALREADY_EXISTS"
 
 
-def test_list_locations():
-    warehouse_id = create_test_warehouse()
+def test_list_locations(client, admin_headers):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     response = client.post(
         "/api/v1/locations",
@@ -136,11 +163,15 @@ def test_list_locations():
             "code": "LIST01",
             "name": "List Location",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
 
-    response = client.get("/api/v1/locations")
+    response = client.get(
+        "/api/v1/locations",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -154,8 +185,11 @@ def test_list_locations():
     assert "LIST01" in codes
 
 
-def test_get_location():
-    warehouse_id = create_test_warehouse()
+def test_get_location(client, admin_headers):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     create_response = client.post(
         "/api/v1/locations",
@@ -164,13 +198,17 @@ def test_get_location():
             "code": "GET01",
             "name": "Get Location",
         },
+        headers=admin_headers,
     )
 
     assert create_response.status_code == 200
 
     location_id = create_response.json()["data"]["id"]
 
-    response = client.get(f"/api/v1/locations/{location_id}")
+    response = client.get(
+        f"/api/v1/locations/{location_id}",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -182,8 +220,11 @@ def test_get_location():
     assert body["data"]["code"] == "GET01"
 
 
-def test_get_location_not_found():
-    response = client.get("/api/v1/locations/999999")
+def test_get_location_not_found(client, admin_headers):
+    response = client.get(
+        "/api/v1/locations/999999",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 400
 
@@ -193,8 +234,11 @@ def test_get_location_not_found():
     assert body["error"]["code"] == "LOCATION_NOT_FOUND"
 
 
-def test_update_location():
-    warehouse_id = create_test_warehouse()
+def test_update_location(client, admin_headers):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     create_response = client.post(
         "/api/v1/locations",
@@ -203,6 +247,7 @@ def test_update_location():
             "code": "UPDATE01",
             "name": "Original Location",
         },
+        headers=admin_headers,
     )
 
     assert create_response.status_code == 200
@@ -215,6 +260,7 @@ def test_update_location():
             "name": "Updated Location",
             "description": "Updated description",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -228,8 +274,14 @@ def test_update_location():
     assert body["data"]["description"] == "Updated description"
 
 
-def test_update_location_duplicate_code():
-    warehouse_id = create_test_warehouse()
+def test_update_location_duplicate_code(
+    client,
+    admin_headers,
+):
+    warehouse_id = create_test_warehouse(
+        client,
+        admin_headers,
+    )
 
     first_response = client.post(
         "/api/v1/locations",
@@ -238,6 +290,7 @@ def test_update_location_duplicate_code():
             "code": "CODE01",
             "name": "First Location",
         },
+        headers=admin_headers,
     )
 
     second_response = client.post(
@@ -247,6 +300,7 @@ def test_update_location_duplicate_code():
             "code": "CODE02",
             "name": "Second Location",
         },
+        headers=admin_headers,
     )
 
     assert first_response.status_code == 200
@@ -259,6 +313,7 @@ def test_update_location_duplicate_code():
         json={
             "code": "CODE02",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400
@@ -269,12 +324,13 @@ def test_update_location_duplicate_code():
     assert body["error"]["code"] == "LOCATION_CODE_ALREADY_EXISTS"
 
 
-def test_update_location_not_found():
+def test_update_location_not_found(client, admin_headers):
     response = client.patch(
         "/api/v1/locations/999999",
         json={
             "name": "Updated Location",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400

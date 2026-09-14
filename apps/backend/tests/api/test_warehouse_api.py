@@ -1,17 +1,11 @@
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-client = TestClient(app)
-
-
-def test_create_warehouse():
+def test_create_warehouse(client, admin_headers):
     response = client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-001",
             "name": "Test Warehouse",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -24,13 +18,14 @@ def test_create_warehouse():
     assert body["data"]["is_active"] is True
 
 
-def test_create_warehouse_duplicate_code():
+def test_create_warehouse_duplicate_code(client, admin_headers):
     client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-DUP",
             "name": "First Warehouse",
         },
+        headers=admin_headers,
     )
 
     response = client.post(
@@ -39,6 +34,7 @@ def test_create_warehouse_duplicate_code():
             "code": "WH-TEST-DUP",
             "name": "Second Warehouse",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400
@@ -49,16 +45,20 @@ def test_create_warehouse_duplicate_code():
     assert body["error"]["code"] == "WAREHOUSE_CODE_ALREADY_EXISTS"
 
 
-def test_list_warehouses():
+def test_list_warehouses(client, admin_headers):
     client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-LIST",
             "name": "List Test Warehouse",
         },
+        headers=admin_headers,
     )
 
-    response = client.get("/api/v1/warehouses")
+    response = client.get(
+        "/api/v1/warehouses",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -72,18 +72,22 @@ def test_list_warehouses():
     assert "WH-TEST-LIST" in codes
 
 
-def test_get_warehouse():
+def test_get_warehouse(client, admin_headers):
     create_response = client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-GET",
             "name": "Get Test Warehouse",
         },
+        headers=admin_headers,
     )
 
     warehouse_id = create_response.json()["data"]["id"]
 
-    response = client.get(f"/api/v1/warehouses/{warehouse_id}")
+    response = client.get(
+        f"/api/v1/warehouses/{warehouse_id}",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 200
 
@@ -95,8 +99,11 @@ def test_get_warehouse():
     assert body["data"]["name"] == "Get Test Warehouse"
 
 
-def test_get_warehouse_not_found():
-    response = client.get("/api/v1/warehouses/999999")
+def test_get_warehouse_not_found(client, admin_headers):
+    response = client.get(
+        "/api/v1/warehouses/999999",
+        headers=admin_headers,
+    )
 
     assert response.status_code == 400
 
@@ -106,13 +113,14 @@ def test_get_warehouse_not_found():
     assert body["error"]["code"] == "WAREHOUSE_NOT_FOUND"
 
 
-def test_update_warehouse():
+def test_update_warehouse(client, admin_headers):
     create_response = client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-UPDATE",
             "name": "Original Name",
         },
+        headers=admin_headers,
     )
 
     warehouse_id = create_response.json()["data"]["id"]
@@ -122,6 +130,7 @@ def test_update_warehouse():
         json={
             "name": "Updated Name",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -134,13 +143,14 @@ def test_update_warehouse():
     assert body["data"]["name"] == "Updated Name"
 
 
-def test_partial_update_warehouse():
+def test_partial_update_warehouse(client, admin_headers):
     create_response = client.post(
         "/api/v1/warehouses",
         json={
             "code": "WH-TEST-PARTIAL",
             "name": "Original Name",
         },
+        headers=admin_headers,
     )
 
     warehouse_id = create_response.json()["data"]["id"]
@@ -150,6 +160,7 @@ def test_partial_update_warehouse():
         json={
             "is_active": False,
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 200
@@ -161,12 +172,13 @@ def test_partial_update_warehouse():
     assert body["data"]["is_active"] is False
 
 
-def test_update_warehouse_not_found():
+def test_update_warehouse_not_found(client, admin_headers):
     response = client.patch(
         "/api/v1/warehouses/999999",
         json={
             "name": "Updated Name",
         },
+        headers=admin_headers,
     )
 
     assert response.status_code == 400

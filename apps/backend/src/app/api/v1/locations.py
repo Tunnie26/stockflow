@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_current_user, get_db, require_user
+from app.models.user import User
 from app.schemas.location import LocationCreate, LocationResponse, LocationUpdate
 from app.schemas.response import SuccessResponse
 from app.services.location import LocationService
@@ -13,6 +14,7 @@ router = APIRouter()
 def create_location(
     data: LocationCreate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = LocationService(db)
 
@@ -30,6 +32,7 @@ def create_location(
 @router.get("", response_model=SuccessResponse)
 def list_locations(
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = LocationService(db)
 
@@ -44,6 +47,7 @@ def list_locations(
 def get_location(
     location_id: int,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     service = LocationService(db)
 
@@ -57,6 +61,7 @@ def update_location(
     location_id: int,
     data: LocationUpdate,
     db: Session = Depends(get_db),  # noqa: B008
+    current_user: User = Depends(require_user()),  # noqa: B008
 ):
     service = LocationService(db)
 
