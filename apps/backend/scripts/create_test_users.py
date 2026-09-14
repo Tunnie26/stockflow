@@ -6,6 +6,11 @@ from app.models.user import User
 
 users = [
     {
+        "username": "admin",
+        "email": "admin@stockflow.local",
+        "role": "ADMIN",
+    },
+    {
         "username": "user",
         "email": "user@stockflow.local",
         "role": "USER",
