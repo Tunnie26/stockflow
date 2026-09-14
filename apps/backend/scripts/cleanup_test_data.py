@@ -69,18 +69,6 @@ def main() -> None:
 
         print(f"Found {len(rbac_material_ids)} RBAC test materials")
 
-        if material_ids:
-            result = conn.execute(
-                text(
-                    """
-                    DELETE FROM materials
-                    WHERE id = ANY(:material_ids)
-                    """
-                ),
-                {"material_ids": material_ids},
-            )
-            print(f"Deleted {result.rowcount} RBAC test materials")
-
         # ---------------------------------------------------------
         # 3. Find transactions belonging to test warehouses
         # ---------------------------------------------------------
@@ -240,6 +228,18 @@ def main() -> None:
                 {"warehouse_ids": warehouse_ids},
             )
             print(f"Deleted {result.rowcount} materials")
+
+        if material_ids:
+            result = conn.execute(
+                text(
+                    """
+                    DELETE FROM materials
+                    WHERE id = ANY(:material_ids)
+                    """
+                ),
+                {"material_ids": material_ids},
+            )
+            print(f"Deleted {result.rowcount} RBAC test materials")
 
         # ---------------------------------------------------------
         # 13. Delete test Suppliers
