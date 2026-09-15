@@ -9,6 +9,8 @@ export interface Warehouse {
   updated_at: string;
 }
 
-export async function getWarehouses(): Promise<Warehouse[]> {
-  return apiClient.get<Warehouse[]>("/api/v1/warehouses");
+export async function getWarehouses(token: string): Promise<Warehouse[]> {
+  return apiClient.get<Warehouse[]>("/api/v1/warehouses", {
+    token,
+  });
 }

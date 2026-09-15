@@ -84,6 +84,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => {
                 const Icon = item.icon;
+
                 const isActive =
                   pathname === item.href ||
                   pathname.startsWith(`${item.href}/`);
@@ -91,14 +92,12 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
-                      render={<Link href={item.href}/>}
+                      render={<Link href={item.href} />}
                       isActive={isActive}
                       tooltip={item.title}
                     >
-                      <Link href={item.href}>
-                        <Icon />
-                        <span>{item.title}</span>
-                      </Link>
+                      <Icon />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -119,10 +118,8 @@ export function AppSidebar() {
               }
               tooltip="Settings"
             >
-              <Link href="/settings">
-                <Settings />
-                <span>Settings</span>
-              </Link>
+              <Settings />
+              <span>Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
