@@ -46,10 +46,20 @@ export function WarehouseSelector() {
     );
   }
 
+  const currentWarehouse = warehouses.find(
+    (warehouse) => warehouse.id === currentWarehouseId,
+  );
+
   return (
     <Select
-      value={currentWarehouseId ? String(currentWarehouseId) : undefined}
-      onValueChange={(value) => setCurrentWarehouse(Number(value))}
+      value={currentWarehouse?.name}
+      onValueChange={(value) => {
+        const warehouse = warehouses.find((item) => item.name === value);
+
+        if (warehouse) {
+          setCurrentWarehouse(warehouse.id);
+        }
+      }}
     >
       <SelectTrigger className="w-[220px]">
         <Building2 className="size-4 text-muted-foreground" />
@@ -58,11 +68,8 @@ export function WarehouseSelector() {
 
       <SelectContent>
         {warehouses.map((warehouse) => (
-          <SelectItem key={warehouse.id} value={String(warehouse.id)}>
-            <span className="font-medium">{warehouse.code}</span>
-            <span className="ml-2 text-muted-foreground">
-              {warehouse.name}
-            </span>
+          <SelectItem key={warehouse.id} value={warehouse.name}>
+            <span className="ml-2 text-muted-foreground">{warehouse.name}</span>
           </SelectItem>
         ))}
       </SelectContent>

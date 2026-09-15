@@ -5,16 +5,20 @@ import type { ReactNode } from "react";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { WarehouseProvider } from "@/features/warehouses/warehouse-context";
 
-interface ProvidersProps {
-  children: ReactNode;
-}
+import { AuthGate } from "@/components/auth/auth-gate";
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <AuthProvider>
-      <WarehouseProvider>
-        {children}
-      </WarehouseProvider>
+      <AuthGate>
+        <WarehouseProvider>
+          {children}
+        </WarehouseProvider>
+      </AuthGate>
     </AuthProvider>
-  )
+  );
 }

@@ -1,111 +1,96 @@
-import { ApiError, isErrorResponse } from "./errors";
-import type { SuccessResponse } from "./types";
+import { getAccessToken } from "@/lib/auth/token-storage";
+import { ApiError } from "./errors";
+import type { ErrorResponse } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+console.log(process.env.NEXT_PUBLIC_API_URL)
 
 if (!API_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+  throw new Error("Missing required environment variable: NEXT_PUBLIC_API_URL");
 }
 
-interface RequestOptions extends Omit<RequestInit, "body"> {
-  token?: string;
-  body?: unknown;
+export interface ApiRequestOptions extends RequestInit {
+  skipAuth?: boolean;
 }
 
 async function request<T>(
-  path: string,
-  options: RequestOptions = {},
+  endpoint: string,
+  options: ApiRequestOptions = {},
 ): Promise<T> {
-  const { token, body, headers, ...requestInit } = options;
+  const { skipAuth = false, ...fetchOptions } = options;
 
-  const requestHeaders = new Headers(headers);
+  const headers = new Headers(fetchOptions.headers);
+  headers.set("Content-Type", "application/json");
 
-  requestHeaders.set("Accept", "application/json");
+  if (!skipAuth) {
+    const token = getAccessToken();
 
-  if (body !== undefined) {
-    requestHeaders.set("Content-Type", "application/json");
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
   }
 
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(`${API_URL}${path}`, {
-    ...requestInit,
-    headers: requestHeaders,
-    body: body === undefined ? undefined : JSON.stringify(body),
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...fetchOptions,
+    headers,
   });
 
   const contentType = response.headers.get("content-type");
   const isJson = contentType?.includes("application/json");
 
-  const payload: unknown = isJson ? await response.json() : null;
+  const body = isJson ? await response.json() : null;
 
   if (!response.ok) {
-    if (isErrorResponse(payload)) {
-      throw new ApiError(
-        payload.error.code,
-        payload.error.message,
-        response.status,
-      );
-    }
+    const errorBody = body as ErrorResponse | null;
 
     throw new ApiError(
-      "UNKNOWN_ERROR",
-      `Request failed with status ${response.status}.`,
+      errorBody?.error?.code ?? "API_ERROR",
+      errorBody?.error?.message ?? "An unexpected error occurred.",
       response.status,
     );
   }
 
-  if (
-    typeof payload !== "object" ||
-    payload === null ||
-    !("data" in payload)
-  ) {
-    throw new ApiError(
-      "INVALID_RESPONSE",
-      "The API returned an invalid response.",
-      response.status,
-    );
+  if (body === null) {
+    return undefined as T;
   }
 
-  return (payload as SuccessResponse<T>).data;
+  return body.data as T;
 }
 
 export const apiClient = {
-  get<T>(path: string, options?: Omit<RequestOptions, "body">) {
-    return request<T>(path, {
+  get<T>(endpoint: string, options?: ApiRequestOptions) {
+    return request<T>(endpoint, {
       ...options,
       method: "GET",
     });
   },
 
   post<T>(
-    path: string,
+    endpoint: string,
     body?: unknown,
-    options?: Omit<RequestOptions, "body">,
+    options?: ApiRequestOptions,
   ) {
-    return request<T>(path, {
+    return request<T>(endpoint, {
       ...options,
       method: "POST",
-      body,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   },
 
   patch<T>(
-    path: string,
+    endpoint: string,
     body?: unknown,
-    options?: Omit<RequestOptions, "body">,
+    options?: ApiRequestOptions,
   ) {
-    return request<T>(path, {
+    return request<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   },
 
-  delete<T>(path: string, options?: Omit<RequestOptions, "body">) {
-    return request<T>(path, {
+  delete<T>(endpoint: string, options?: ApiRequestOptions) {
+    return request<T>(endpoint, {
       ...options,
       method: "DELETE",
     });

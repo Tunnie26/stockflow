@@ -56,7 +56,7 @@ export function WarehouseProvider({
     setError(null);
 
     try {
-      const data = await getWarehouses(token);
+      const data = await getWarehouses();
 
       const activeWarehouses = data.filter(
         (warehouse) => warehouse.is_active,
