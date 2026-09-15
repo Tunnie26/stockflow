@@ -17,6 +17,7 @@ def main() -> None:
                    OR code LIKE 'WH-LOCATION-%'
                    OR code LIKE 'WH-TRANSACTION-%'
                    OR code LIKE 'WH-TEST-%'
+                   OR code LIKE 'WH-INVENTORY-%'
                 """
             )
         ).all()
@@ -316,6 +317,7 @@ def main() -> None:
                    OR code LIKE 'WH-LOCATION-%'
                    OR code LIKE 'WH-TRANSACTION-%'
                    OR code LIKE 'WH-TEST-%'
+                   OR code LIKE 'WH-INVENTORY-%'
                 """
             )
         )
