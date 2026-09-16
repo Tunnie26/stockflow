@@ -27,7 +27,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, isLoading, isPublicRoute, pathname, router]);
 
-  if (isLoading) {
+  if (isLoading && !isPublicRoute) {
     return null;
   }
 

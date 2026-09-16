@@ -11,7 +11,7 @@ export function AuthBrand() {
         src={logo}
         alt="StockFlow"
         priority
-        className="h-auto w-[220px] object-contain"
+        className="h-auto w-[300px] object-contain"
       />
     </div>
   );

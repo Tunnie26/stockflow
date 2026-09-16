@@ -1,145 +1,94 @@
 "use client";
 
-import { Loader2, UserRound } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { ApiError } from "@/lib/api/errors";
 import { useAuth } from "@/features/auth/auth-context";
+import { loginSchema, type LoginFormData } from "@/features/auth/auth-schema";
 
 import { AuthField } from "./auth-field";
 import { PasswordField } from "./password-field";
 
-interface FormErrors {
-  username?: string;
-  password?: string;
-}
-
 export function LoginForm() {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [apiError, setApiError] = useState<string | null>(null);
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [apiError, setApiError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+    mode: "onSubmit",
+  });
 
-  function validate(): boolean {
-    const nextErrors: FormErrors = {};
-
-    if (!username.trim()) {
-      nextErrors.username = "Username is required.";
-    }
-
-    if (!password) {
-      nextErrors.password = "Password is required.";
-    }
-
-    setErrors(nextErrors);
-
-    return Object.keys(nextErrors).length === 0;
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    setApiError("");
-
-    if (!validate()) {
-      return;
-    }
+  const onSubmit = async (data: LoginFormData) => {
+    setApiError(null);
 
     try {
-      await login({
-        username: username.trim(),
-        password,
-      });
+      await login(data);
 
       router.replace("/dashboard");
     } catch (error) {
       if (error instanceof ApiError) {
         setApiError(error.message);
-      } else {
-        setApiError("Unable to sign in. Please try again.");
+        return;
       }
+
+      setApiError("Unable to sign in. Please try again.");
     }
-  }
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="mt-8 space-y-5"
-    >
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+      <AuthField
+        id="username"
+        label="Username"
+        type="text"
+        autoComplete="username"
+        placeholder="Enter your username"
+        error={errors.username?.message}
+        {...register("username")}
+      />
+
+      <PasswordField
+        id="password"
+        label="Password"
+        autoComplete="current-password"
+        placeholder="Enter your password"
+        error={errors.password?.message}
+        {...register("password")}
+      />
+
       {apiError && (
         <div
           role="alert"
-          className="rounded-xl border border-[#F0526B]/30 bg-[#F0526B]/10 px-4 py-3 text-sm text-[#F0526B]"
+          aria-live="polite"
+          className="rounded-lg border border-[#F0526B]/30 bg-[#F0526B]/10 px-4 py-3 text-sm text-[#F0526B]"
         >
           {apiError}
         </div>
       )}
 
-      <AuthField
-        id="username"
-        name="username"
-        type="text"
-        label="Username"
-        placeholder="Enter your username"
-        value={username}
-        onChange={(event) => {
-          setUsername(event.target.value);
-
-          if (errors.username) {
-            setErrors((current) => ({
-              ...current,
-              username: undefined,
-            }));
-          }
-        }}
-        autoComplete="username"
-        disabled={isLoading}
-        icon={<UserRound className="size-4" />}
-        error={errors.username}
-      />
-
-      <PasswordField
-        value={password}
-        onChange={(value) => {
-          setPassword(value);
-
-          if (errors.password) {
-            setErrors((current) => ({
-              ...current,
-              password: undefined,
-            }));
-          }
-        }}
-        error={errors.password}
-        disabled={isLoading}
-      />
-
       <button
         type="submit"
-        disabled={isLoading}
-        className={[
-          "relative flex h-12 w-full items-center justify-center",
-          "rounded-xl px-6",
-          "bg-gradient-to-r from-[#4F7CFF] to-[#7C5CFF]",
-          "text-sm font-semibold text-white",
-          "shadow-[0_0_24px_rgba(79,124,255,0.28)]",
-          "transition-all duration-200",
-          "hover:brightness-110",
-          "hover:shadow-[0_0_30px_rgba(79,124,255,0.38)]",
-          "active:scale-[0.99]",
-          "disabled:cursor-not-allowed disabled:opacity-60",
-        ].join(" ")}
+        disabled={isSubmitting}
+        className="flex h-11 w-full items-center justify-center gap-2 cursor-pointer rounded-lg bg-gradient-to-r from-[#4F7CFF] to-[#7C5CFF] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isLoading ? (
+        {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 size-4 animate-spin" />
-            Signing in...
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span>Signing in...</span>
           </>
         ) : (
           "Sign In"

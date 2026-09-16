@@ -1,87 +1,67 @@
 "use client";
 
-import {
-  Eye,
-  EyeOff,
-  LockKeyhole,
-} from "lucide-react";
-import { useState } from "react";
+import { forwardRef, useState, type InputHTMLAttributes } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
-interface PasswordFieldProps {
-  value: string;
-  onChange: (value: string) => void;
+type PasswordFieldProps = InputHTMLAttributes<HTMLInputElement> & {
+  id: string;
+  label: string;
   error?: string;
-  disabled?: boolean;
-}
+};
 
-export function PasswordField({
-  value,
-  onChange,
-  error,
-  disabled = false,
-}: PasswordFieldProps) {
-  const [visible, setVisible] = useState(false);
+export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
+  function PasswordField({ id, label, error, className, ...props }, ref) {
+    const [showPassword, setShowPassword] = useState(false);
 
-  return (
-    <div className="space-y-2">
-      <label
-        htmlFor="password"
-        className="block text-sm font-medium text-[#B8C2D9]"
-      >
-        Password
-      </label>
-
-      <div
-        className={[
-          "group relative flex h-12 items-center rounded-xl",
-          "border border-[#202C43]",
-          "bg-[#0D1422]/80",
-          "transition-all duration-200",
-          "focus-within:border-[#4F7CFF]",
-          "focus-within:ring-4 focus-within:ring-[#4F7CFF]/10",
-          "hover:border-[#2C3A55]",
-          error ? "border-[#F0526B]" : "",
-          disabled ? "cursor-not-allowed opacity-60" : "",
-        ].join(" ")}
-      >
-        <LockKeyhole className="ml-4 size-4 shrink-0 text-[#8490A8] transition-colors group-focus-within:text-[#6F8FFF]" />
-
-        <input
-          id="password"
-          type={visible ? "text" : "password"}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled}
-          autoComplete="current-password"
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? "password-error" : undefined}
-          placeholder="Enter your password"
-          className="h-full w-full min-w-0 bg-transparent px-3 text-sm text-[#F4F7FF] outline-none placeholder:text-[#606C84]"
-        />
-
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => setVisible((current) => !current)}
-          aria-label={visible ? "Hide password" : "Show password"}
-          className="mr-2 flex size-8 shrink-0 items-center justify-center rounded-lg text-[#8490A8] transition-colors hover:bg-[#18253A] hover:text-[#B8C2D9] disabled:pointer-events-none"
+    return (
+      <div className="space-y-2">
+        <label
+          htmlFor={id}
+          className="block text-sm font-medium text-[#B8C2D9]"
         >
-          {visible ? (
-            <EyeOff className="size-4" />
-          ) : (
-            <Eye className="size-4" />
-          )}
-        </button>
+          {label}
+        </label>
+
+        <div className="relative">
+          <input
+            ref={ref}
+            id={id}
+            type={showPassword ? "text" : "password"}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? `${id}-error` : undefined}
+            className={[
+              "h-11 w-full rounded-lg border bg-[#0D1422] px-3.5 pr-11 text-sm text-[#F4F7FF]",
+              "outline-none transition",
+              "placeholder:text-[#606C84]",
+              "focus:border-[#5B82FF] focus:ring-2 focus:ring-[#5B82FF]/20",
+              error ? "border-[#F0526B]" : "border-[#202C43]",
+              className,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            {...props}
+          />
+
+          <button
+            type="button"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword((current) => !current)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8490A8] transition-colors hover:text-[#B8C2D9]"
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4 cursor-pointer" />
+            ) : (
+              <Eye className="h-4 w-4 cursor-pointer" />
+            )}
+          </button>
+        </div>
+
+        {error && (
+          <p id={`${id}-error`} className="text-sm text-[#F0526B]" role="alert">
+            {error}
+          </p>
+        )}
       </div>
-
-      {error && (
-        <p
-          id="password-error"
-          className="text-xs text-[#F0526B]"
-        >
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+    );
+  },
+);

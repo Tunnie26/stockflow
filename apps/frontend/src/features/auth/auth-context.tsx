@@ -75,42 +75,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest) => {
-    setIsLoading(true);
+  try {
+    const response = await loginRequest(credentials);
+    const accessToken = response.access_token;
 
-    try {
-      const response = await loginRequest(credentials);
-      const accessToken = response.access_token;
-
-      if (!accessToken) {
-        throw new Error("Login succeeded but no access token was returned.");
-      }
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("[StockFlow Auth] Login response:", response);
-        console.log("[StockFlow Auth] Access token:", accessToken);
-      }
-
-      setAccessToken(accessToken);
-
-      const currentUser = await getCurrentUser();
-
-      setToken(accessToken);
-      setUser(currentUser);
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("[StockFlow Auth] Authenticated user:", currentUser);
-      }
-    } catch (error) {
-      removeAccessToken();
-
-      setToken(null);
-      setUser(null);
-
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (!accessToken) {
+      throw new Error("Login succeeded but no access token was returned.");
     }
-  }, []);
+
+    setAccessToken(accessToken);
+
+    const currentUser = await getCurrentUser();
+
+    setToken(accessToken);
+    setUser(currentUser);
+  } catch (error) {
+    removeAccessToken();
+
+    setToken(null);
+    setUser(null);
+
+    throw error;
+  }
+}, []);
 
   const logout = useCallback(() => {
     removeAccessToken();
