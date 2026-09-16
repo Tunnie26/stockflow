@@ -61,7 +61,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader className="h-20 border-b border-sidebar-border">
         <div className="flex items-center gap-3 px-2 py-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             SF
@@ -95,6 +95,7 @@ export function AppSidebar() {
                       render={<Link href={item.href} />}
                       isActive={isActive}
                       tooltip={item.title}
+                      className="cursor-pointer"
                     >
                       <Icon />
                       <span>{item.title}</span>
@@ -117,6 +118,7 @@ export function AppSidebar() {
                 pathname.startsWith("/settings/")
               }
               tooltip="Settings"
+              className="cursor-pointer"
             >
               <Settings />
               <span>Settings</span>
@@ -129,6 +131,7 @@ export function AppSidebar() {
                 type="button"
                 onClick={logout}
                 tooltip="Logout"
+                className="cursor-pointer"
               >
                 <LogOut />
                 <span>Logout</span>
