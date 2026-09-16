@@ -27,8 +27,8 @@ class DashboardQueryService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_dashboard(self) -> DashboardResponse:
-        warehouse = self._get_current_warehouse()
+    def get_dashboard(self, warehouse_id: int) -> DashboardResponse:
+        warehouse = self._get_warehouse(warehouse_id)
 
         return DashboardResponse(
             warehouse=DashboardWarehouseResponse(
@@ -45,19 +45,17 @@ class DashboardQueryService:
             top_used_materials=self._get_top_used_materials(warehouse.id),
         )
 
-    def _get_current_warehouse(self) -> Warehouse:
-        statement = (
-            select(Warehouse)
-            .where(Warehouse.is_active.is_(True))
-            .order_by(Warehouse.id.asc())
-            .limit(1)
+    def _get_warehouse(self, warehouse_id: int) -> Warehouse:
+        statement = select(Warehouse).where(
+            Warehouse.id == warehouse_id,
+            Warehouse.is_active.is_(True),
         )
 
         warehouse = self.db.execute(statement).scalar_one_or_none()
 
         if warehouse is None:
             raise AppError(
-                "No active warehouse found",
+                "Warehouse not found",
                 code="WAREHOUSE_NOT_FOUND",
                 status_code=404,
             )
@@ -68,6 +66,44 @@ class DashboardQueryService:
         quantity = func.coalesce(
             StockBalance.quantity,
             Decimal("0"),
+        )
+
+        today = date.today()
+        first_day_of_month = today.replace(day=1)
+
+        if today.month == 12:
+            first_day_of_next_month = date(
+                today.year + 1,
+                1,
+                1,
+            )
+        else:
+            first_day_of_next_month = date(
+                today.year,
+                today.month + 1,
+                1,
+            )
+
+        inbound_this_month = (
+            select(func.count(Transaction.id))
+            .where(
+                Transaction.warehouse_id == warehouse_id,
+                Transaction.transaction_type == TransactionType.INBOUND,
+                Transaction.transaction_date >= first_day_of_month,
+                Transaction.transaction_date < first_day_of_next_month,
+            )
+            .scalar_subquery()
+        )
+
+        outbound_this_month = (
+            select(func.count(Transaction.id))
+            .where(
+                Transaction.warehouse_id == warehouse_id,
+                Transaction.transaction_type == TransactionType.OUTBOUND,
+                Transaction.transaction_date >= first_day_of_month,
+                Transaction.transaction_date < first_day_of_next_month,
+            )
+            .scalar_subquery()
         )
 
         statement = (
@@ -88,6 +124,8 @@ class DashboardQueryService:
                         )
                     )
                 ).label("stock_warning"),
+                inbound_this_month.label("inbound_this_month"),
+                outbound_this_month.label("outbound_this_month"),
             )
             .select_from(Material)
             .outerjoin(
@@ -106,6 +144,8 @@ class DashboardQueryService:
             total_sku=row.total_sku,
             stock_danger=row.stock_danger,
             stock_warning=row.stock_warning,
+            inbound_this_month=row.inbound_this_month,
+            outbound_this_month=row.outbound_this_month,
         )
 
     def _get_stock_danger(
@@ -214,6 +254,7 @@ class DashboardQueryService:
                 Transaction.id == StockMovement.transaction_id,
             )
             .where(
+                Transaction.warehouse_id == warehouse_id,
                 Transaction.transaction_type == TransactionType.OUTBOUND,
             )
             .group_by(

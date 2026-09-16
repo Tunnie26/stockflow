@@ -14,6 +14,8 @@ class DashboardSummaryResponse(BaseModel):
     total_sku: int
     stock_danger: int
     stock_warning: int
+    inbound_this_month: int
+    outbound_this_month: int
 
 
 class DashboardStockItemResponse(BaseModel):
