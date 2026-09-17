@@ -25,6 +25,8 @@ import {
 import { useAuth } from "@/features/auth/auth-context";
 
 import stockflowLogo from "@/assets/images/stockflow_logo_horizontal.png"
+import { useAlert } from "../alert";
+import { usePageTransition } from "./page-transition";
 
 const navigationItems = [
   {
@@ -84,7 +86,9 @@ const sidebarItemClassName = [
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { showAlert } = useAlert()
   const { logout } = useAuth()
+  const { startTransition } = usePageTransition();
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -193,7 +197,24 @@ export function AppSidebar() {
                 "focus-visible:ring-1",
                 "focus-visible:ring-(--sf-danger)",
               ].join(" ")}
-              onClick={logout}
+              onClick={async () => {
+                const confirmed = await showAlert({
+                  type: "confirm",
+                  title: "Đăng xuất",
+                  message: "Bạn có chắc chắn muốn đăng xuất?",
+                  confirmText: "Đăng xuất",
+                  cancelText: "Hủy"
+                })
+
+                if (!confirmed) {
+                  return;
+                }
+
+                logout();
+                startTransition(() => {
+                  router.push("/login");
+                })
+              }}
             >
               <LogOut className="size-4.5 shrink-0 text-(--sf-text-tertiary)" />
 

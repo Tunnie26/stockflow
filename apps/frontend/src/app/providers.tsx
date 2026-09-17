@@ -4,9 +4,10 @@ import { useState, type ReactNode } from "react";
 
 import { AuthProvider } from "@/features/auth/auth-context";
 import { WarehouseProvider } from "@/features/warehouses/warehouse-context";
-
 import { AuthGate } from "@/components/auth/auth-gate";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AlertProvider } from "@/components/alert";
+import { PageTransitionProvider } from "@/components/layout/page-transition";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -25,7 +26,13 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthGate>
-          <WarehouseProvider>{children}</WarehouseProvider>
+          <WarehouseProvider>
+            <AlertProvider>
+              <PageTransitionProvider>
+                {children}
+              </PageTransitionProvider>
+            </AlertProvider>
+          </WarehouseProvider>
         </AuthGate>
       </AuthProvider>
     </QueryClientProvider>
