@@ -1,5 +1,9 @@
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from datetime import date
+from decimal import Decimal
+from math import ceil
+
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session, selectinload
 
 from app.exceptions import AppError
 from app.models.material import Material
@@ -8,7 +12,11 @@ from app.models.supplier import Supplier
 from app.models.transaction import Transaction, TransactionType
 from app.models.transaction_detail import TransactionDetail
 from app.models.warehouse import Warehouse
-from app.schemas.transaction import TransactionCreate
+from app.schemas.transaction import (
+    TransactionCreate,
+    TransactionListItemResponse,
+    TransactionListResponse,
+)
 from app.services.inventory_service import InventoryService
 
 
@@ -17,8 +25,197 @@ class TransactionService:
         self.db = db
         self.inventory_service = InventoryService(db)
 
+    def list_transactions(
+        self,
+        *,
+        warehouse_id: int | None = None,
+        transaction_type: TransactionType | None = None,
+        supplier_id: int | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> TransactionListResponse:
+        if page < 1:
+            raise AppError(
+                "Page must be greater than or equal to 1",
+                code="INVALID_PAGE",
+                status_code=400,
+            )
+
+        if page_size < 1 or page_size > 100:
+            raise AppError(
+                "Page size must be between 1 and 100",
+                code="INVALID_PAGE_SIZE",
+                status_code=400,
+            )
+
+        if date_from is not None and date_to is not None and date_from > date_to:
+            raise AppError(
+                "date_from must be less than or equal to date_to",
+                code="INVALID_DATE_RANGE",
+                status_code=400,
+            )
+
+        conditions = []
+
+        if warehouse_id is not None:
+            conditions.append(Transaction.warehouse_id == warehouse_id)
+
+        if transaction_type is not None:
+            conditions.append(Transaction.transaction_type == transaction_type)
+
+        if supplier_id is not None:
+            conditions.append(Transaction.supplier_id == supplier_id)
+
+        if date_from is not None:
+            conditions.append(Transaction.transaction_date >= date_from)
+
+        if date_to is not None:
+            conditions.append(Transaction.transaction_date <= date_to)
+
+        if search:
+            search_value = search.strip()
+
+            if search_value:
+                search_conditions = [
+                    Supplier.code.ilike(f"%{search_value}%"),
+                    Supplier.name.ilike(f"%{search_value}%"),
+                ]
+
+                if search_value.isdigit():
+                    search_conditions.append(
+                        Transaction.transaction_no == int(search_value)
+                    )
+
+                conditions.append(or_(*search_conditions))
+
+        base_query = (
+            select(Transaction.id)
+            .select_from(Transaction)
+            .outerjoin(
+                Supplier,
+                Supplier.id == Transaction.supplier_id,
+            )
+            .where(*conditions)
+        )
+
+        total = (
+            self.db.scalar(select(func.count()).select_from(base_query.subquery())) or 0
+        )
+
+        offset = (page - 1) * page_size
+
+        detail_count = func.count(TransactionDetail.id)
+
+        total_quantity = func.coalesce(
+            func.sum(TransactionDetail.quantity),
+            Decimal("0"),
+        )
+
+        total_amount = func.coalesce(
+            func.sum(TransactionDetail.total_amount),
+            Decimal("0"),
+        )
+
+        statement = (
+            select(
+                Transaction.id,
+                Transaction.transaction_no,
+                Transaction.transaction_type,
+                Transaction.warehouse_id,
+                Transaction.supplier_id,
+                Supplier.code.label("supplier_code"),
+                Supplier.name.label("supplier_name"),
+                Transaction.transaction_date,
+                Transaction.note,
+                Transaction.created_by,
+                Transaction.created_at,
+                detail_count.label("detail_count"),
+                total_quantity.label("total_quantity"),
+                total_amount.label("total_amount"),
+            )
+            .select_from(Transaction)
+            .outerjoin(
+                Supplier,
+                Supplier.id == Transaction.supplier_id,
+            )
+            .outerjoin(
+                TransactionDetail,
+                TransactionDetail.transaction_id == Transaction.id,
+            )
+            .where(*conditions)
+            .group_by(
+                Transaction.id,
+                Transaction.transaction_no,
+                Transaction.transaction_type,
+                Transaction.warehouse_id,
+                Transaction.supplier_id,
+                Supplier.code,
+                Supplier.name,
+                Transaction.transaction_date,
+                Transaction.note,
+                Transaction.created_by,
+                Transaction.created_at,
+            )
+            .order_by(
+                Transaction.transaction_date.desc(),
+                Transaction.created_at.desc(),
+                Transaction.id.desc(),
+            )
+            .offset(offset)
+            .limit(page_size)
+        )
+
+        rows = self.db.execute(statement).mappings().all()
+
+        items = [TransactionListItemResponse.model_validate(row) for row in rows]
+
+        total_pages = ceil(total / page_size) if total else 0
+
+        return TransactionListResponse(
+            items=items,
+            page=page,
+            page_size=page_size,
+            total=total,
+            total_pages=total_pages,
+        )
+
+    def get_transaction(
+        self,
+        transaction_id: int,
+    ) -> Transaction:
+        statement = (
+            select(Transaction)
+            .options(
+                selectinload(Transaction.details),
+            )
+            .where(Transaction.id == transaction_id)
+        )
+
+        transaction = self.db.scalar(statement)
+
+        if transaction is None:
+            raise AppError(
+                "Transaction not found",
+                code="TRANSACTION_NOT_FOUND",
+                status_code=404,
+            )
+
+        return transaction
+
     def create(self, payload: TransactionCreate) -> Transaction:
         self._validate_business_rules(payload)
+
+        material_ids = [detail.material_id for detail in payload.details]
+
+        if len(material_ids) != len(set(material_ids)):
+            raise AppError(
+                "A material cannot appear more than once in the same transaction",
+                code="DUPLICATE_MATERIAL",
+                status_code=400,
+            )
 
         transaction = Transaction(
             transaction_no=self._generate_transaction_no(),

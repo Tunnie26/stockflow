@@ -77,3 +77,32 @@ class AdjustmentCreate(BaseModel):
     transaction_date: date
     reason: str = Field(min_length=1, max_length=1000)
     details: list[AdjustmentDetailCreate] = Field(min_length=1)
+
+
+class TransactionListItemResponse(BaseModel):
+    id: int
+    transaction_no: int
+    transaction_type: TransactionType
+    warehouse_id: int
+
+    supplier_id: int | None
+    supplier_code: str | None
+    supplier_name: str | None
+
+    transaction_date: date
+    note: str | None
+    created_by: int | None
+    created_at: datetime
+
+    detail_count: int
+    total_quantity: Decimal
+    total_amount: Decimal
+
+
+class TransactionListResponse(BaseModel):
+    items: list[TransactionListItemResponse]
+
+    page: int
+    page_size: int
+    total: int
+    total_pages: int
