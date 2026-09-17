@@ -3,6 +3,7 @@ import { Geist_Mono, Inter } from "next/font/google";
 import React from "react";
 import "./globals.css";
 import { Providers } from "./providers";
+import { stockFlowTheme } from "@/lib/theme";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html
       lang="vi"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      style={stockFlowTheme}
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

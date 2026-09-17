@@ -1,14 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  ClipboardCheck,
   Boxes,
+  ClipboardCheck,
   LayoutDashboard,
   LogIn,
   LogOut,
-  PackageOpen,
+  Package,
   Settings,
 } from "lucide-react";
 
@@ -16,128 +17,189 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
 import { useAuth } from "@/features/auth/auth-context";
+
+import stockflowLogo from "@/assets/images/stockflow_logo_horizontal.png"
 
 const navigationItems = [
   {
-    title: "Dashboard",
+    title: "Thống kê",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Inbound",
+    title: "Nhập kho",
     href: "/inbound",
     icon: LogIn,
   },
   {
-    title: "Outbound",
+    title: "Xuất kho",
     href: "/outbound",
-    icon: PackageOpen,
+    icon: Package,
   },
   {
-    title: "Inventory",
+    title: "Tồn kho",
     href: "/inventory",
     icon: Boxes,
   },
   {
-    title: "Inventory Check",
+    title: "Kiểm kê",
     href: "/inventory-check",
     icon: ClipboardCheck,
   },
 ];
 
+const footerItems = [
+  {
+    title: "Cài đặt",
+    href: "/settings",
+    icon: Settings,
+  },
+];
+
+const sidebarItemClassName = [
+  "cursor-pointer",
+  "h-11 rounded-xl px-3",
+  "text-(--sf-text-secondary)",
+  "transition-all duration-200",
+
+  "hover:bg-(--sf-interaction-hover)",
+  "hover:text-(--sf-text-primary)",
+
+  "focus:outline-none",
+  "focus-visible:outline-none",
+  "focus-visible:ring-1",
+  "focus-visible:ring-(--sf-border-primary)",
+
+  "data-[active=true]:bg-(--sf-interaction-active)",
+  "data-[active=true]:text-(--sf-text-primary)",
+  "data-[active=true]:shadow-[inset_3px_0_0_var(--sf-primary)",
+].join(" ")
+
 export function AppSidebar() {
+  const router = useRouter();
   const pathname = usePathname();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth()
+
+  const isActive = (href: string) => {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="h-20 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            SF
-          </div>
-
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">StockFlow</p>
-            <p className="truncate text-xs text-sidebar-foreground/60">
-              Inventory Management
-            </p>
-          </div>
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-(--sf-border-subtle) bg-(--sf-space-900)"
+    >
+      {/* Header */}
+      <SidebarHeader className="border-b border-(--sf-border-subtle) bg-(--sf-space-900) h-20">
+        <div className="flex h-20 items-center px-2">
+          <Link href="/dashboard" className="flex min-w-0 items-center">
+            <Image
+              src={stockflowLogo}
+              alt="StockFlow"
+              width={180}
+              height={48}
+              priority
+              className="h-auto w-60 object-contain"
+            />
+          </Link>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+      {/* Navigation */}
+      <SidebarContent className="bg-(--sf-space-900) px-3 py-4">
+        <SidebarMenu className="gap-1">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
 
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  isActive={active}
+                  tooltip={item.title}
+                  onClick={() => router.push(item.href)}
+                  className={sidebarItemClassName}
+                >
+                  <Icon
+                    className={[
+                      "size-4.5 shrink-0",
+                      active
+                        ? "text-(--sf-primary)"
+                        : "text-(--sf-text-tertiary)",
+                    ].join(" ")}
+                  />
 
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
-
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      render={<Link href={item.href} />}
-                      isActive={isActive}
-                      tooltip={item.title}
-                      className="cursor-pointer"
-                    >
-                      <Icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                  <span className="text-sm font-medium">{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border">
-        <SidebarMenu>
+      {/* Footer */}
+      <SidebarFooter className="border-t border-(--sf-border-subtle) bg-(--sf-space-900) px-3 py-3">
+        <SidebarMenu className="gap-1">
+          {footerItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  isActive={active}
+                  tooltip={item.title}
+                  onClick={() => router.push(item.href)}
+                  className={sidebarItemClassName}
+                >
+                  <Icon
+                    className={[
+                      "size-4.5 shrink-0",
+                      active
+                        ? "text-(--sf-primary)"
+                        : "text-(--sf-text-tertiary)",
+                    ].join(" ")}
+                  />
+
+                  <span className="text-sm font-medium">{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+
+          {/* Logout */}
           <SidebarMenuItem>
             <SidebarMenuButton
-              render={<Link href="/settings" />}
-              isActive={
-                pathname === "/settings" ||
-                pathname.startsWith("/settings/")
-              }
-              tooltip="Settings"
-              className="cursor-pointer"
+              tooltip="Logout"
+              className={[
+                "cursor-pointer",
+                "h-11 rounded-xl px-3",
+                "text-(--sf-text-secondary)",
+                "transition-all duration-200",
+
+                // Hover
+                "hover:bg-[color-mix(in_srgb,var(--sf-danger)_8%,transparent)]",
+                "hover:text-(--sf-danger)",
+
+                // Keyboard focus
+                "focus:outline-none",
+                "focus-visible:outline-none",
+                "focus-visible:ring-1",
+                "focus-visible:ring-(--sf-danger)",
+              ].join(" ")}
+              onClick={logout}
             >
-              <Settings />
-              <span>Settings</span>
+              <LogOut className="size-4.5 shrink-0 text-(--sf-text-tertiary)" />
+
+              <span className="text-sm font-medium">Đăng xuất</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-
-          {user && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                type="button"
-                onClick={logout}
-                tooltip="Logout"
-                className="cursor-pointer"
-              >
-                <LogOut />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
