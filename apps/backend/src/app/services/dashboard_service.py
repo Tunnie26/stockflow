@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date
 from decimal import Decimal
 
@@ -5,6 +6,7 @@ from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.exceptions import AppError
+from app.models.customer import Customer
 from app.models.location import Location
 from app.models.material import Material
 from app.models.stock_balance import StockBalance
@@ -148,6 +150,38 @@ class DashboardQueryService:
             outbound_this_month=row.outbound_this_month,
         )
 
+    def _get_customers_by_material_ids(
+        self,
+        material_ids: list[int],
+    ) -> dict[int, list[str]]:
+        if not material_ids:
+            return {}
+
+        statement = (
+            select(
+                Material.id,
+                Customer.name,
+            )
+            .select_from(Material)
+            .join(Material.customers)
+            .where(
+                Material.id.in_(material_ids),
+            )
+            .order_by(
+                Material.id.asc(),
+                Customer.name.asc(),
+            )
+        )
+
+        rows = self.db.execute(statement).all()
+
+        customers_by_material: dict[int, list[str]] = defaultdict(list)
+
+        for material_id, customer_name in rows:
+            customers_by_material[material_id].append(customer_name)
+
+        return dict(customers_by_material)
+
     def _get_stock_danger(
         self,
         warehouse_id: int,
@@ -191,7 +225,30 @@ class DashboardQueryService:
 
         rows = self.db.execute(statement).mappings().all()
 
-        return [DashboardStockItemResponse.model_validate(row) for row in rows]
+        if not rows:
+            return []
+
+        material_ids = [row["material_id"] for row in rows]
+
+        customers_by_material = self._get_customers_by_material_ids(material_ids)
+
+        return [
+            DashboardStockItemResponse(
+                material_id=row["material_id"],
+                sku=row["sku"],
+                name=row["name"],
+                unit=row["unit"],
+                specification=row["specification"],
+                customers=customers_by_material.get(
+                    row["material_id"],
+                    [],
+                ),
+                quantity=row["quantity"],
+                minimum_stock=row["minimum_stock"],
+                location_code=row["location_code"],
+            )
+            for row in rows
+        ]
 
     def _get_stock_warning(
         self,
@@ -240,7 +297,30 @@ class DashboardQueryService:
 
         rows = self.db.execute(statement).mappings().all()
 
-        return [DashboardStockItemResponse.model_validate(row) for row in rows]
+        if not rows:
+            return []
+
+        material_ids = [row["material_id"] for row in rows]
+
+        customers_by_material = self._get_customers_by_material_ids(material_ids)
+
+        return [
+            DashboardStockItemResponse(
+                material_id=row["material_id"],
+                sku=row["sku"],
+                name=row["name"],
+                unit=row["unit"],
+                specification=row["specification"],
+                customers=customers_by_material.get(
+                    row["material_id"],
+                    [],
+                ),
+                quantity=row["quantity"],
+                minimum_stock=row["minimum_stock"],
+                location_code=row["location_code"],
+            )
+            for row in rows
+        ]
 
     def _get_long_time_no_outbound(
         self,
