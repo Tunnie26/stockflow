@@ -35,7 +35,7 @@ export function DataTable<T>({
       )}
     >
       <div className="data-table-scroll overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr className="border-b border-[#202C43] bg-[#090E1A]">
               {columns.map((column) => (

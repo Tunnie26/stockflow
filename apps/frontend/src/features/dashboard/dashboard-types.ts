@@ -17,6 +17,7 @@ export interface DashboardStockItem {
   sku: string;
   name: string;
   unit: string;
+  specification: string;
   quantity: string;
   minimum_stock: string;
   location_code: string | null;

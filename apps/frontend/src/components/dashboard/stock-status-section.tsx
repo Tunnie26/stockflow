@@ -21,39 +21,74 @@ export function StockStatusSection({ dashboard }: StockStatusSectionProps) {
       {
         key: "sku",
         header: "SKU",
+        headerClassName: "w-[90px] whitespace-nowrap !text-left",
+        className: "w-[90px] !text-left",
         render: (item) => (
-          <span className="font-medium text-[#F4F7FF]">{item.sku}</span>
+          <span className="whitespace-nowrap font-medium text-[#F4F7FF]">
+            {item.sku}
+          </span>
         ),
       },
       {
         key: "name",
-        header: "Vật tư",
-        render: (item) => <span className="text-[#B8C2D9]">{item.name}</span>,
+        header: "Tên",
+        headerClassName: "w-[220px] whitespace-nowrap !text-left",
+        className: "w-[220px] !text-left",
+        render: (item) => (
+          <span className="block truncate text-[#B8C2D9]" title={item.name}>
+            {item.name}
+          </span>
+        ),
       },
       {
         key: "unit",
         header: "ĐVT",
+        headerClassName: "w-[80px] whitespace-nowrap !text-center",
+        className: "w-[80px] whitespace-nowrap !text-center",
         render: (item) => item.unit,
+      },
+      {
+        key: "specification",
+        header: "Quy cách",
+        headerClassName: "w-[150px] whitespace-nowrap !text-center",
+        className: "w-[150px] !text-center",
+        render: (item) => (
+          <span className="block truncate" title={item.specification}>
+            {item.specification}
+          </span>
+        ),
       },
       {
         key: "quantity",
         header: "Tồn kho",
+        headerClassName: "w-[100px] whitespace-nowrap !text-center",
+        className: "w-[100px] !text-center",
         render: (item) => (
-          <span className="font-semibold text-[#F0526B]">{formatQuantity(item.quantity)}</span>
+          <span className="font-semibold text-[#F0526B]">
+            {formatQuantity(item.quantity)}
+          </span>
         ),
       },
       {
         key: "minimum_stock",
         header: "Tối thiểu",
+        headerClassName: "w-[100px] whitespace-nowrap !text-center",
+        className: "w-[100px] !text-center",
         render: (item) => (
-          <span className="text-[#8490A8]">{formatQuantity(item.minimum_stock)}</span>
+          <span className="text-[#8490A8]">
+            {formatQuantity(item.minimum_stock)}
+          </span>
         ),
       },
       {
         key: "location",
         header: "Vị trí",
+        headerClassName: "w-[100px] whitespace-nowrap !text-center",
+        className: "w-[100px] !text-center",
         render: (item) => (
-          <span className="text-[#8490A8]">{item.location_code ?? "-"}</span>
+          <span className="whitespace-nowrap text-[#8490A8]">
+            {item.location_code ?? "-"}
+          </span>
         ),
       },
     ];
@@ -64,37 +99,68 @@ export function StockStatusSection({ dashboard }: StockStatusSectionProps) {
     {
       key: "sku",
       header: "SKU",
+      headerClassName: "w-[110px] whitespace-nowrap text-left",
+      className: "w-[110px] whitespace-nowrap text-left",
       render: (item) => (
         <span className="font-medium text-[#F4F7FF]">{item.sku}</span>
       ),
     },
     {
       key: "name",
-      header: "Vật tư",
-      render: (item) => <span className="text-[#B8C2D9]">{item.name}</span>,
+      header: "Tên vật tư",
+      headerClassName: "w-[230px] whitespace-nowrap text-left",
+      className: "w-[230px] text-left",
+      render: (item) => (
+        <span className="block truncate text-[#B8C2D9]" title={item.name}>
+          {item.name}
+        </span>
+      ),
     },
     {
       key: "unit",
       header: "ĐVT",
+      headerClassName: "w-[80px] whitespace-nowrap text-center",
+      className: "w-[80px] whitespace-nowrap text-center",
       render: (item) => item.unit,
+    },
+    {
+      key: "specification",
+      header: "Quy cách",
+      headerClassName: "w-[150px] whitespace-nowrap !text-center",
+      className: "w-[150px] !text-center",
+      render: (item) => (
+        <span className="block truncate" title={item.specification}>
+          {item.specification}
+        </span>
+      ),
     },
     {
       key: "quantity",
       header: "Tồn kho",
+      headerClassName: "w-[100px] whitespace-nowrap text-center",
+      className: "w-[100px] whitespace-nowrap text-center",
       render: (item) => (
-        <span className="font-semibold text-[#F5B82E]">{formatQuantity(item.quantity)}</span>
+        <span className="font-semibold text-[#F5B82E]">
+          {formatQuantity(item.quantity)}
+        </span>
       ),
     },
     {
       key: "minimum_stock",
       header: "Tối thiểu",
+      headerClassName: "w-[100px] whitespace-nowrap text-center",
+      className: "w-[100px] whitespace-nowrap text-center",
       render: (item) => (
-        <span className="text-[#8490A8]">{item.minimum_stock}</span>
+        <span className="text-[#8490A8]">
+          {formatQuantity(item.minimum_stock)}
+        </span>
       ),
     },
     {
       key: "location",
       header: "Vị trí",
+      headerClassName: "w-[100px] whitespace-nowrap text-center",
+      className: "w-[100px] whitespace-nowrap text-center",
       render: (item) => (
         <span className="text-[#8490A8]">{item.location_code ?? "-"}</span>
       ),
@@ -103,7 +169,6 @@ export function StockStatusSection({ dashboard }: StockStatusSectionProps) {
 
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      {/* Danger Stock */}
       <DataPanel
         title="Sắp hết hàng"
         description="Các SKU đang dưới mức tồn kho tối thiểu"
@@ -122,7 +187,6 @@ export function StockStatusSection({ dashboard }: StockStatusSectionProps) {
         />
       </DataPanel>
 
-      {/* Warning Stock */}
       <DataPanel
         title="Cảnh báo tồn kho"
         description="Các SKU cần được theo dõi"
