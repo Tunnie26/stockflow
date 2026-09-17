@@ -23,6 +23,8 @@ class DashboardStockItemResponse(BaseModel):
     sku: str
     name: str
     unit: str
+    specification: str
+    customers: list[str]
     quantity: Decimal
     minimum_stock: Decimal
     location_code: str | None
